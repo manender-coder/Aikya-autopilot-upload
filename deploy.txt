@@ -1,0 +1,4 @@
+To deploy:
+- Upload to Netlify/Vercel
+- Ensure domain mapping
+- Test all PDF/QR functionality

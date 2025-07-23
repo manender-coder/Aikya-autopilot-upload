@@ -1,0 +1,1 @@
+// Placeholder for vault unlocking logic and PDF handler.
