@@ -1,1 +1,1 @@
-# Aikya-divine
+# Aikya
