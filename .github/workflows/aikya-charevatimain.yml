@@ -1,0 +1,31 @@
+name: Aikya Charevati Autopilot ♾
+
+on:
+  schedule:
+    - cron: "*/5 * * * *"   # every 5 minutes
+  workflow_dispatch: {}
+
+jobs:
+  autopilot:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install deps
+        run: npm install googleapis firebase-admin node-fetch@2
+
+      - name: Write Firebase SA
+        run: echo '${{ secrets.FIREBASE_SERVICE_ACCOUNT }}' > sa.json
+
+      - name: Run YouTube → Captions → Autonorm → Firestore
+        env:
+          YT_CLIENT_ID: ${{ secrets.YT_CLIENT_ID }}
+          YT_CLIENT_SECRET: ${{ secrets.YT_CLIENT_SECRET }}
+          YT_REFRESH_TOKEN: ${{ secrets.YT_REFRESH_TOKEN }}
+          GOOGLE_APPLICATION_CREDENTIALS: ${{ github.workspace }}/sa.json
+        run: node scripts/aikya_autopilot.js
