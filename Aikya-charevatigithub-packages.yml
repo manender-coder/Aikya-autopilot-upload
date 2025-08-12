@@ -1,0 +1,93 @@
+# This const fetch = require("node-fetch");
+const admin = require("firebase-admin");
+const { google } = require("googleapis");
+
+admin.initializeApp({ credential: admin.credential.applicationDefault() });
+const db = admin.firestore();
+
+const oauth2 = new google.auth.OAuth2(
+  process.env.YT_CLIENT_ID,
+  process.env.YT_CLIENT_SECRET,
+  "urn:ietf:wg:oauth:2.0:oob"
+);
+oauth2.setCredentials({ refresh_token: process.env.YT_REFRESH_TOKEN });
+const yt = google.youtube({ version: "v3", auth: oauth2 });
+
+async function accessToken() {
+  const { token } = await oauth2.getAccessToken();
+  return token;
+}
+async function latestVideoId() {
+  const { data } = await yt.search.list({
+    part: "id", forMine: true, order: "date", maxResults: 1, type: "video",
+  });
+  return data.items?.[0]?.id?.videoId || null;
+}
+async function captionId(videoId) {
+  const { data } = await yt.captions.list({ part: "snippet", videoId });
+  return data.items?.[0]?.id || null;
+}
+async function downloadSrt(capId, at) {
+  const r = await fetch(`https://www.googleapis.com/youtube/v3/captions/${capId}?tfmt=srt`,
+    { headers: { Authorization: `Bearer ${at}` } });
+  if (!r.ok) throw new Error(`Caption download failed: ${r.status}`);
+  return r.text();
+}
+function autonorm(srt) {
+  return srt.split(/\r?\n/)
+    .filter(l => !/^\d+$/.test(l) && !/^\d{2}:\d{2}:\d{2},\d{3}/.test(l))
+    .join(" ").replace(/\s+/g, " ").trim();
+}
+async function save(videoId, srt, text) {
+  await db.collection("aikya_captions").doc(videoId).set({
+    videoId, srt, autonorm: text, mode: "Charevati",
+    createdAt: admin.firestore.FieldValue.serverTimestamp(),
+  });
+}
+
+(async () => {
+  try {
+    const at = await accessToken();
+    const vid = await latestVideoId();   if (!vid) return console.log("No video");
+    const cap = await captionId(vid);    if (!cap) return console.log("No captions yet");
+    const srt = await downloadSrt(cap, at);
+    const text = autonorm(srt);
+    await save(vid, srt, text);
+    console.log(`♾ saved autonorm for ${vid}`);
+  } catch (e) { console.error(e); process.exitCode = 1; }
+})();workflow will run tests using node and then publish a package to GitHub Packages when a release is created
+# For more information see: https://docs.github.com/en/actions/publishing-packages/publishing-nodejs-packages
+
+name: Node.js Package
+
+on:
+  release:
+    types: [created]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm ci
+      - run: npm test
+
+  publish-gpr:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          registry-url: https://npm.pkg.github.com/
+      - run: npm ci
+      - run: npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{secrets.GITHUB_TOKEN}}
