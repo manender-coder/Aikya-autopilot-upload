@@ -1,0 +1,20 @@
+name: Google Studio Workflow
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+env:
+  GOOGLE_API: ${{ secrets.Google_api_key }}
+
+jobs:
+  test-google-api:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Display Google API Key (masked)
+        run: echo "Google API key is set and ready"
