@@ -1,0 +1,104 @@
+name: Charevati Autopilot ♾️
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "*/30 * * * *"   # every 30 minutes (adjust as you like)
+  push:
+    branches: [ main ]
+    paths:
+      - ".github/workflows/charevati-autopilot.yml"
+      - "autopilot/**"
+
+permissions:
+  contents: write
+  id-token: write
+
+concurrency:
+  group: charevati-autopilot
+  cancel-in-progress: true
+
+jobs:
+  autopilot:
+    runs-on: ubuntu-latest
+
+    env:
+      # ——— rename these if your secret keys differ ———
+      GOOGLE_API_KEY: ${{ secrets.Google_api_key }}
+      FIREBASE_SA: ${{ secrets.FIREBASE_SA || secrets.FIREBASE_SA_JSON || secrets.SERVICE_ACC }}  # pick whichever you have
+      FIREBASE_PROJECT_ID: ${{ secrets.FIREBASE_PROJECT_ID }}
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+      PLAY_PACKAGE_NAME: ${{ secrets.PLAY_PACKAGE_NAME }}
+      ANDROID_LOGIN_JSON: ${{ secrets.ANDROID_LOGIN }}    # service-account JSON (raw)
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Prepare Google / Firebase credentials
+        shell: bash
+        run: |
+          echo "${FIREBASE_SA}" > $HOME/firebase_sa.json
+          echo "Google API key present: $([[ -n "$GOOGLE_API_KEY" ]] && echo yes || echo no)"
+
+      - name: Install CLIs
+        run: npm i -g firebase-tools vercel
+
+      # -------- Captions & Autonorms (plug your scripts here) --------
+      - name: Generate captions (Whisper/Gemini hook)
+        run: |
+          mkdir -p out/captions
+          node scripts/captions.mjs || true
+
+      - name: Run autonorm sync (CRM/Vault/Broadcast hook)
+        run: |
+          mkdir -p out/autonorms
+          node scripts/autonorms.mjs || true
+
+      - name: Commit captions/autonorms updates
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "♾️ Autopilot: captions/autonorms update"
+          file_pattern: |
+            out/captions/**
+            out/autonorms/**
+
+      # ---------------- Firebase Hosting deploy ----------------
+      - name: Deploy to Firebase Hosting
+        env:
+          GOOGLE_APPLICATION_CREDENTIALS: ${{ runner.home }}/firebase_sa.json
+        run: |
+          firebase --project "$FIREBASE_PROJECT_ID" deploy --only hosting
+
+      # ------------------- Vercel production -------------------
+      - name: Deploy to Vercel (prod)
+        env:
+          VERCEL_ORG_ID: ${{ env.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ env.VERCEL_PROJECT_ID }}
+        run: vercel deploy --yes --prod --token "$VERCEL_TOKEN" --confirm
+
+      # ------- Play Store upload (runs only if .aab exists) ------
+      - name: Upload .aab to Google Play
+        if: ${{ hashFiles('**/*.aab') != '' }}
+        uses: r0adkll/upload-google-play@v1
+        with:
+          serviceAccountJsonPlainText: ${{ env.ANDROID_LOGIN_JSON }}
+          packageName: ${{ env.PLAY_PACKAGE_NAME }}
+          releaseFiles: |
+            ./Aikya_Spiritual_v1.0.0.aab
+          track: production
+          status: completed
+
+      # ---------------------- Status note -----------------------
+      - name: Charevati status note
+        run: |
+          echo "Aikya domains: aikya.ink, www.aikya.ink, aikya.space"
+          echo "Firebase + Vercel deploy attempted; Play upload conditional on .aab"
+          echo "Kabir: स्वार्थ बिन होय न प्रीति"
