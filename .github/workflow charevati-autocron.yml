@@ -1,0 +1,62 @@
+name: Charevati Autocron ♾️
+
+on:
+  schedule:
+    - cron: "*/30 * * * *"   # every 30 minutes
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+  actions: write
+
+concurrency:
+  group: charevati-autocron
+  cancel-in-progress: false
+
+env:
+  REPO: ${{ github.repository }}
+
+jobs:
+  ping_and_trigger:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Heartbeat
+        run: echo "Charevati ♾️ $(date -u +'%FT%TZ')"
+
+      # ----- Optional webhooks you already stored as secrets -----
+      - name: Kick Vercel (Deploy Hook)
+        if: ${{ secrets.VERCEL_DEPLOY_HOOK != '' }}
+        run: |
+          curl -sS -X POST "$VERCEL_DEPLOY_HOOK" -o - | tee /tmp/vercel.json || true
+        env:
+          VERCEL_DEPLOY_HOOK: ${{ secrets.VERCEL_DEPLOY_HOOK }}
+
+      - name: Call Replicate (if set)
+        if: ${{ secrets.REPLICATE_DEPLOY_HOOK != '' }}
+        run: curl -sS -X POST "$REPLICATE_DEPLOY_HOOK" || true
+        env:
+          REPLICATE_DEPLOY_HOOK: ${{ secrets.REPLICATE_DEPLOY_HOOK }}
+
+      # ----- Fan‑out: wake other workflows if they exist -----
+      - name: Trigger sibling workflows
+        env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+          REPO: ${{ github.repository }}
+        run: |
+          set -e
+          for wf in \
+            "Automain.yml" \
+            "main.yml" \
+            "nextjs.yml" \
+            "aikya-charevatimain.yml" \
+            "Aikya-charevatigithub-packages.yml" \
+            "Aikya-chatevatimain.yml" \
+            "Aikya-charevatiAutomain.yml"
+          do
+            echo "Dispatching $wf (if present)…"
+            gh workflow view "$wf" -R "$REPO" >/dev/null 2>&1 && \
+              gh workflow run "$wf" -R "$REPO" || echo "Skip $wf"
+          done
