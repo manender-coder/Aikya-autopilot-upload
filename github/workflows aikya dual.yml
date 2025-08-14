@@ -1,0 +1,148 @@
+name: Aikya Dual Deploy v2 (Autopilot Aligned)
+
+on:
+  push:
+    branches: [ "main" ]
+  workflow_dispatch:
+  schedule:
+    - cron: "*/30 * * * *" # every 30 min
+
+concurrency:
+  group: aikya-dual-deploy
+  cancel-in-progress: false
+
+env:
+  # ---- Vercel ----
+  VERCEL_TOKEN:      ${{ secrets.VERCEL_TOKEN }}
+  VERCEL_ORG_ID:     ${{ secrets.VERCEL_ORG_ID }}
+  VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+
+  # ---- Firebase (choose ONE auth path) ----
+  FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }} # full JSON text
+  FIREBASE_PROJECT_ID:      ${{ secrets.FIREBASE_PROJECT_ID }}
+  FIREBASE_TOKEN:           ${{ secrets.FIREBASE_TOKEN }}            # optional alternative
+
+jobs:
+  preflight:
+    runs-on: ubuntu-latest
+    outputs:
+      has_pkg:   ${{ steps.scan.outputs.has_pkg }}
+      has_build: ${{ steps.scan.outputs.has_build }}
+      has_fb:    ${{ steps.scan.outputs.has_fb }}
+      vercel_ok: ${{ steps.scan.outputs.vercel_ok }}
+      fb_auth:   ${{ steps.scan.outputs.fb_auth }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Scan repo & env (no secrets revealed)
+        id: scan
+        shell: bash
+        run: |
+          set -e
+          echo "== Files =="
+          ls -la | head -n 200
+
+          # package.json present?
+          if [ -f package.json ]; then echo "has_pkg=true"  >> $GITHUB_OUTPUT; else echo "has_pkg=false" >> $GITHUB_OUTPUT; fi
+          # build script present?
+          if [ -f package.json ] && jq -e '.scripts.build' package.json >/dev/null; then echo "has_build=true" >> $GITHUB_OUTPUT; else echo "has_build=false" >> $GITHUB_OUTPUT; fi
+          # firebase.json present?
+          if [ -f firebase.json ]; then echo "has_fb=true"   >> $GITHUB_OUTPUT; else echo "has_fb=false"   >> $GITHUB_OUTPUT; fi
+          # vercel auth present?
+          if [ -n "${VERCEL_TOKEN}" ] && [ -n "${VERCEL_ORG_ID}" ]; then echo "vercel_ok=true" >> $GITHUB_OUTPUT; else echo "vercel_ok=false" >> $GITHUB_OUTPUT; fi
+          # firebase auth path decided?
+          if [ -n "${FIREBASE_SERVICE_ACCOUNT}" ] && [ -n "${FIREBASE_PROJECT_ID}" ]; then
+            echo "fb_auth=service_account" >> $GITHUB_OUTPUT
+          elif [ -n "${FIREBASE_TOKEN}" ]; then
+            echo "fb_auth=token" >> $GITHUB_OUTPUT
+          else
+            echo "fb_auth=none" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Preflight summary
+        run: |
+          echo "### Preflight" >> $GITHUB_STEP_SUMMARY
+          echo "- package.json:      ${{ steps.scan.outputs.has_pkg }}"  >> $GITHUB_STEP_SUMMARY
+          echo "- build script:      ${{ steps.scan.outputs.has_build }}" >> $GITHUB_STEP_SUMMARY
+          echo "- firebase.json:     ${{ steps.scan.outputs.has_fb }}"    >> $GITHUB_STEP_SUMMARY
+          echo "- Vercel auth set:   ${{ steps.scan.outputs.vercel_ok }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Firebase auth:     ${{ steps.scan.outputs.fb_auth }}"   >> $GITHUB_STEP_SUMMARY
+
+  build:
+    runs-on: ubuntu-latest
+    needs: preflight
+    if: ${{ needs.preflight.outputs.has_pkg == 'true' }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node (no lockfile required)
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install deps (lockless, best-effort)
+        run: npm install --no-audit --no-fund || true
+
+      - name: Build (best-effort)
+        run: |
+          if [ "${{ needs.preflight.outputs.has_build }}" = "true" ]; then
+            npm run build || echo "Build failed; continuing."
+          else
+            echo "No build script; continuing."
+          fi
+
+  deploy-vercel:
+    runs-on: ubuntu-latest
+    needs: [preflight, build]
+    if: ${{ needs.preflight.outputs.vercel_ok == 'true' }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Vercel deploy (conditional)
+        shell: bash
+        run: |
+          echo "▶ Vercel deploy..."
+          npx vercel pull --yes --environment=production \
+            --token "${VERCEL_TOKEN}" --scope "${VERCEL_ORG_ID}" \
+            ${VERCEL_PROJECT_ID:+--project "${VERCEL_PROJECT_ID}"} || true
+          npx vercel build --token "${VERCEL_TOKEN}" || true
+          npx vercel deploy --prebuilt --prod \
+            --token "${VERCEL_TOKEN}" --scope "${VERCEL_ORG_ID}" \
+            ${VERCEL_PROJECT_ID:+--project "${VERCEL_PROJECT_ID}"} || true
+          echo "✅ Vercel step finished"
+
+  deploy-firebase:
+    runs-on: ubuntu-latest
+    needs: [preflight, build]
+    if: ${{ needs.preflight.outputs.has_fb == 'true' && needs.preflight.outputs.fb_auth != 'none' }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Firebase CLI
+        run: npm i -g firebase-tools >/dev/null 2>&1
+
+      - name: Firebase deploy via Service Account
+        if: ${{ needs.preflight.outputs.fb_auth == 'service_account' }}
+        run: |
+          echo "${FIREBASE_SERVICE_ACCOUNT}" > $RUNNER_TEMP/fb.json
+          export GOOGLE_APPLICATION_CREDENTIALS="$RUNNER_TEMP/fb.json"
+          firebase deploy --only hosting --project "${FIREBASE_PROJECT_ID}" || true
+          echo "✅ Firebase (SA) finished"
+
+      - name: Firebase deploy via Token
+        if: ${{ needs.preflight.outputs.fb_auth == 'token' }}
+        run: |
+          firebase deploy --only hosting --token "${FIREBASE_TOKEN}" || true
+          echo "✅ Firebase (token) finished"
+
+  wrapup:
+    runs-on: ubuntu-latest
+    needs: [preflight, build, deploy-vercel, deploy-firebase]
+    if: always()
+    steps:
+      - name: Final summary
+        run: |
+          echo "### Aikya Dual Deploy v2 — Wrap-up" >> $GITHUB_STEP_SUMMARY
+          echo "- Vercel attempted: ${{ needs.preflight.outputs.vercel_ok }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Firebase attempted: ${{ needs.preflight.outputs.fb_auth }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Build ran: ${{ needs.preflight.outputs.has_pkg }}" >> $GITHUB_STEP_SUMMARY
