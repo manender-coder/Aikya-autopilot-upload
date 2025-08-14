@@ -1,0 +1,140 @@
+name: Aikya Autopilot ♾️
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+env:
+  APP_NAME: ${{ secrets.APP_NAME }}
+  ENVIRONMENT: ${{ secrets.ENVIRONMENT || 'production' }}
+  CAPTIONS_LANG: ${{ secrets.CAPTIONS_LANG || 'en' }}
+
+  # Git / YouTube / APIs
+  GH_TOKEN: ${{ secrets.GH_TOKEN }}
+  GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
+  GOOGLE_CLIENT_SECRET_1: ${{ secrets.GOOGLE_CLIENT_SECRET_1 }}
+  GOOGLE_CLIENT_SECRET_2: ${{ secrets.GOOGLE_CLIENT_SECRET_2 }}
+  YOUTUBE_LOGIN: ${{ secrets.YOUTUBE_LOGIN }}
+
+  # Firebase
+  FIREBASE_PROJECT_ID: ${{ secrets.FIREBASE_PROJECT_ID }}
+  FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }} # preferred
+  FIREBASE_SA_JSON: ${{ secrets.FIREBASE_SA_JSON }}                 # fallback if used earlier
+
+  # Vercel
+  VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+  VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+  VERCEL_PROJECT_NAME: ${{ secrets.VERCEL_PROJECT_NAME }}
+
+  # Optional webhooks (safe to be empty)
+  REPLICATE_DEPLOY_HOOK: ${{ secrets.REPLICATE_DEPLOY_HOOK }}
+
+jobs:
+  autopilot:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          token: ${{ env.GH_TOKEN || github.token }}
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install CLIs (firebase, vercel)
+        run: |
+          npm i -g firebase-tools vercel
+
+      - name: Write Firebase Service Account JSON
+        id: fb_json
+        shell: bash
+        run: |
+          mkdir -p $HOME/.gcp
+          if [ -n "${FIREBASE_SERVICE_ACCOUNT}" ]; then
+            echo "${FIREBASE_SERVICE_ACCOUNT}" > $HOME/.gcp/sa.json
+          elif [ -n "${FIREBASE_SA_JSON}" ]; then
+            echo "${FIREBASE_SA_JSON}" > $HOME/.gcp/sa.json
+          else
+            echo "No Firebase service account provided." >&2
+            exit 1
+          fi
+          echo "GOOGLE_APPLICATION_CREDENTIALS=$HOME/.gcp/sa.json" >> $GITHUB_ENV
+
+      - name: Make scripts executable
+        run: |
+          chmod +x .github/workflows/scripts/*.sh || true
+
+      - name: Run Captions + Autonorms (Charevati ♾️)
+        shell: bash
+        env:
+          CAPTIONS_LANG: ${{ env.CAPTIONS_LANG }}
+          GOOGLE_API_KEY: ${{ env.GOOGLE_API_KEY }}
+          GOOGLE_CLIENT_SECRET_1: ${{ env.GOOGLE_CLIENT_SECRET_1 }}
+          GOOGLE_CLIENT_SECRET_2: ${{ env.GOOGLE_CLIENT_SECRET_2 }}
+          YOUTUBE_LOGIN: ${{ env.YOUTUBE_LOGIN }}
+        run: |
+          if [ -f ".github/workflows/scripts/captions_autonorm.sh" ]; then
+            bash .github/workflows/scripts/captions_autonorm.sh || true
+          else
+            echo "⚠️ captions_autonorm.sh not found, skipping."
+          fi
+
+      - name: Firebase Deploy
+        shell: bash
+        env:
+          FIREBASE_TOKEN: ""
+          GOOGLE_APPLICATION_CREDENTIALS: ${{ env.GOOGLE_APPLICATION_CREDENTIALS }}
+          FIREBASE_PROJECT_ID: ${{ env.FIREBASE_PROJECT_ID }}
+        run: |
+          if [ -n "${FIREBASE_PROJECT_ID}" ]; then
+            echo "Using GCP SA at ${GOOGLE_APPLICATION_CREDENTIALS}"
+            export GOOGLE_APPLICATION_CREDENTIALS="${GOOGLE_APPLICATION_CREDENTIALS}"
+            firebase projects:list >/dev/null 2>&1 || true
+            firebase deploy --project "${FIREBASE_PROJECT_ID}" || true
+          else
+            echo "⚠️ FIREBASE_PROJECT_ID missing, skipping Firebase deploy."
+          fi
+
+      - name: Vercel Deploy
+        shell: bash
+        env:
+          VERCEL_TOKEN: ${{ env.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ env.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_NAME: ${{ env.VERCEL_PROJECT_NAME }}
+          ENVIRONMENT: ${{ env.ENVIRONMENT }}
+        run: |
+          if [ -n "${VERCEL_TOKEN}" ] && [ -n "${VERCEL_ORG_ID}" ] && [ -n "${VERCEL_PROJECT_NAME}" ]; then
+            vercel pull --yes --environment=${ENVIRONMENT} --token=${VERCEL_TOKEN}
+            vercel deploy --prod --token=${VERCEL_TOKEN} --confirm \
+              --scope=${VERCEL_ORG_ID} --yes || true
+          else
+            echo "⚠️ Vercel info incomplete, skipping Vercel deploy."
+          fi
+
+      - name: Optional – ping Replicate/Edge hook
+        if: ${{ env.REPLICATE_DEPLOY_HOOK != '' }}
+        run: curl -fsSL -X POST "$REPLICATE_DEPLOY_HOOK" || true
+
+      - name: Commit & Push generated artifacts
+        if: always()
+        env:
+          GIT_AUTHOR_NAME: aikya-autopilot
+          GIT_AUTHOR_EMAIL: autopilot@aikya.ink
+          GIT_COMMITTER_NAME: aikya-autopilot
+          GIT_COMMITTER_EMAIL: autopilot@aikya.ink
+          GH_TOKEN: ${{ env.GH_TOKEN || github.token }}
+        run: |
+          git config user.name  "$GIT_AUTHOR_NAME"
+          git config user.email "$GIT_AUTHOR_EMAIL"
+          git add -A
+          git diff --cached --quiet && echo "No changes to commit." || git commit -m "♾️ Autopilot: captions + autonorms + deploy"
+          git push origin HEAD:main || true
