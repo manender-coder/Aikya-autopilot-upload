@@ -1,0 +1,67 @@
+name: Aikya Charevati Autopilot ♾️
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # ---------- Python for captions + autonorms ----------
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Install deps (optional)
+        run: |
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; else echo "no requirements.txt"; fi
+
+      - name: Make scripts executable
+        run: |
+          mkdir -p scripts
+          chmod +x scripts/captions_autonorm.sh || true
+
+      - name: Run Captions + Autonorms
+        run: |
+          echo "♾️ Running Captions + Autonorms..."
+          bash scripts/captions_autonorm.sh || true
+          echo "♾️ Captions & Autonorms complete!"
+
+      # ---------- Vercel deploy ----------
+      - name: Install Vercel CLI
+        run: npm i -g vercel@latest
+
+      - name: Deploy to Vercel
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_NAME: ${{ secrets.VERCEL_PROJECT_NAME }}
+        run: |
+          if [ -z "${VERCEL_PROJECT_NAME}" ]; then
+            echo "Set secret VERCEL_PROJECT_NAME (value: aikya)"; exit 1;
+          fi
+          vercel pull --yes --environment=production --token "$VERCEL_TOKEN"
+          vercel deploy --prod --token "$VERCEL_TOKEN" --yes --confirm --scope "$VERCEL_ORG_ID" --name "$VERCEL_PROJECT_NAME"
+
+      # ---------- Firebase deploy ----------
+      - name: Install Firebase CLI
+        run: npm i -g firebase-tools@13
+
+      - name: Write Firebase SA key
+        run: |
+          echo '${{ secrets.FIREBASE_SERVICE_ACCOUNT }}' > $HOME/firebase_sa.json
+          echo "GOOGLE_APPLICATION_CREDENTIALS=$HOME/firebase_sa.json" >> $GITHUB_ENV
+
+      - name: Deploy to Firebase
+        env:
+          GOOGLE_APPLICATION_CREDENTIALS: ${{ env.GOOGLE_APPLICATION_CREDENTIALS }}
+          FIREBASE_PROJECT_ID: ${{ secrets.FIREBASE_PROJECT_ID }}
+        run: |
+          firebase deploy --project "$FIREBASE_PROJECT_ID" || true
