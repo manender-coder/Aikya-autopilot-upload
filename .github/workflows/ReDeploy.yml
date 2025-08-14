@@ -1,0 +1,41 @@
+name: Aikya Charevati Autopilot ♾
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Install (optional) deps
+        run: |
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; else echo "no requirements.txt"; fi
+
+      - name: Make scripts executable
+        run: |
+          chmod +x scripts/captions_autonorm.sh || true
+
+      - name: Run Captions + Autonorms
+        run: bash scripts/captions_autonorm.sh
+
+      - name: Commit & push generated artifacts
+        run: |
+          git config user.name "aikya-autopilot"
+          git config user.email "autopilot@aikya.ink"
+          git add aikya/*.json || true
+          git diff --cached --quiet && echo "No changes to commit" || git commit -m "autopilot: update captions + autonorms ♾"
+          git push
