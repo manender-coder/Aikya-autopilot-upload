@@ -1,0 +1,68 @@
+name: Swayam Autopilot ♾️
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+
+permissions:
+  contents: read
+
+jobs:
+  autopilot:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      # Optional: install tools your repo needs
+      - name: Install CLIs
+        run: |
+          npm i -g firebase-tools vercel
+
+      # --- Firebase deploy (via service account JSON you already stored) ---
+      - name: Write Firebase service account
+        run: |
+          echo "${FIREBASE_SERVICE_ACCOUNT}" > $RUNNER_TEMP/firebase.json
+        env:
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+
+      - name: Deploy to Firebase Hosting
+        env:
+          GOOGLE_APPLICATION_CREDENTIALS: ${{ runner.temp }}/firebase.json
+          FIREBASE_PROJECT_ID: ${{ secrets.FIREBASE_PROJECT_ID }}
+        run: |
+          firebase deploy --only hosting --project "$FIREBASE_PROJECT_ID" --non-interactive
+
+      # --- Vercel deploy (no build here; just trigger your Deploy Hook) ---
+      - name: Trigger Vercel Production Deploy
+        if: ${{ secrets.VERCEL_DEPLOY_HOOK != '' }}
+        run: |
+          curl -fsSL -X POST "${{ secrets.VERCEL_DEPLOY_HOOK }}" && echo "Vercel deploy hook fired."
+
+      # --- Captions + Autonorm (won’t fail the whole job if script missing) ---
+      - name: Captions & Autonorm
+        env:
+          CAPTIONS_LANG: ${{ secrets.CAPTIONS_LANG }}
+          ENVIRONMENT:  ${{ secrets.ENVIRONMENT }}
+          GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
+        run: |
+          npm run captions:autonorm || echo "captions:autonorm script not found; continuing."
+
+      # --- YouTube upload (cookie/login or API—your secret YOUTUBE_LOGIN) ---
+      - name: Upload to YouTube (best-effort)
+        env:
+          YOUTUBE_LOGIN: ${{ secrets.YOUTUBE_LOGIN }}
+          GOOGLE_CLIENT_SECRET_1: ${{ secrets.GOOGLE_CLIENT_SECRET_1 }}
+          GOOGLE_CLIENT_SECRET_2: ${{ secrets.GOOGLE_CLIENT_SECRET_2 }}
+        run: |
+          npm run youtube:upload || echo "youtube:upload script not found; continuing."
+
+      - name: Charevati Complete
+        run: echo "♾️ Charevati cycle completed."
