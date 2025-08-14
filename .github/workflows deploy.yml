@@ -1,0 +1,2 @@
+- name: Run Captions + Autonorms
+  run: bash scripts/captions_autonorm.sh
