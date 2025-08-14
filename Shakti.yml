@@ -1,0 +1,128 @@
+# .github/workflows/aikya-shakti-no-vercel.yml
+name: Aikya • Shakti Push (No Vercel)
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "full | quick"
+        required: false
+        default: "full"
+  schedule:
+    - cron: "11 * * * *"   # hourly at :11 (UTC)
+
+env:
+  NODE_VERSION: ${{ secrets.NODE_VERSION || '18' }}
+
+jobs:
+  setup:
+    runs-on: ubuntu-latest
+    outputs:
+      short_repo: ${{ steps.name.outputs.short }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+      - name: Install deps
+        run: npm ci || npm i
+      - name: Build (if present)
+        run: npm run build || echo "no build step"
+      - id: name
+        run: echo "short=${GITHUB_REPOSITORY##*/}" >> $GITHUB_OUTPUT
+
+  firebase_deploy:
+    runs-on: ubuntu-latest
+    needs: [setup]
+    steps:
+      - uses: actions/checkout@v4
+      - run: npm i -g firebase-tools
+      - name: Auth (service account JSON)
+        run: echo '${{ secrets.FIREBASE_SERVICE_ACCOUNT }}' > $HOME/fb.json
+      - name: Firebase Deploy (Hosting/Functions if configured)
+        env:
+          GOOGLE_APPLICATION_CREDENTIALS: $HOME/fb.json
+        run: |
+          firebase use ${{ secrets.FIREBASE_PROJECT_ID }} || true
+          firebase deploy --non-interactive --force || echo "Firebase skipped"
+
+  android_release:
+    if: ${{ github.event.inputs.mode != 'quick' }}
+    runs-on: ubuntu-latest
+    needs: [setup]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.2'
+      - run: gem install fastlane
+      - name: Upload .aab to Play (if exists)
+        env:
+          SUPPLY_JSON_KEY_DATA: ${{ secrets.PLAY_STORE_JSON_KEY }}
+        run: |
+          if [ -d "android" ] && [ -f "android/app-release.aab" ]; then
+            cd android
+            fastlane supply --aab app-release.aab --track production
+          else
+            echo "No AAB found, skipping"
+          fi
+
+  orchestrate_zaps:
+    runs-on: ubuntu-latest
+    needs: [firebase_deploy, android_release]
+    steps:
+      - name: Ping Zapier: deploy_event -> BigQuery
+        run: |
+          curl -sS -X POST "$ZAPIER_DEPLOY_HOOK_URL" \
+           -H 'Content-Type: application/json' \
+           -d "{
+            \"kind\":\"deploy\",
+            \"ts\":\"$(date -u +%Y-%m-%dT%H:%M:%SZ)\",
+            \"repo\":\"${{ github.repository }}\",
+            \"short_repo\":\"${{ needs.setup.outputs.short_repo }}\",
+            \"sha\":\"${{ github.sha }}\",
+            \"status\":\"firebase=${{ needs.firebase_deploy.result }}|aab=${{ needs.android_release.result }}\",
+            \"run\":\"${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}\"
+           }"
+        env:
+          ZAPIER_DEPLOY_HOOK_URL: ${{ secrets.ZAPIER_DEPLOY_HOOK_URL }}
+
+      - name: Ping Zapier: captions_autonorm
+        run: |
+          curl -sS -X POST "$ZAPIER_DEPLOY_HOOK_URL" \
+           -H 'Content-Type: application/json' \
+           -d "{
+            \"kind\":\"captions_autonorm\",
+            \"project\":\"Aikya\",
+            \"repo\":\"${{ github.repository }}\",
+            \"asset_hint\":\"darshan-livestream\",
+            \"priority\":\"high\"
+           }"
+        env:
+          ZAPIER_DEPLOY_HOOK_URL: ${{ secrets.ZAPIER_DEPLOY_HOOK_URL }}
+
+      - name: Ping Zapier: dao_sync
+        run: |
+          curl -sS -X POST "$ZAPIER_DEPLOY_HOOK_URL" \
+           -H 'Content-Type: application/json' \
+           -d "{
+            \"kind\":\"dao_sync\",
+            \"vault\":\"Nirvana-112\",
+            \"note\":\"post-deploy karma+NFT sync\"
+           }"
+        env:
+          ZAPIER_DEPLOY_HOOK_URL: ${{ secrets.ZAPIER_DEPLOY_HOOK_URL }}
+
+      - name: Ping Zapier: broadcast
+        run: |
+          curl -sS -X POST "$ZAPIER_DEPLOY_HOOK_URL" \
+           -H 'Content-Type: application/json' \
+           -d "{
+            \"kind\":\"broadcast\",
+            \"channels\":[\"youtube\",\"facebook\",\"instagram\",\"telegram\"],
+            \"message\":\"Aikya Shakti Push (Firebase-only) complete ♾️\"
+           }"
+        env:
+          ZAPIER_DEPLOY_HOOK_URL: ${{ secrets.ZAPIER_DEPLOY_HOOK_URL }}
