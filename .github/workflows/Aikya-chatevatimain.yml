@@ -1,4 +1,9 @@
-# ---------------- Firebase deploy (optional) ----------------
+on:
+  workflow_dispatch: {}   # TEMP disable automatic triggers
+# push:
+#   branches: [ main ]
+# schedule:
+#   - cron: "..."# ---------------- Firebase deploy (optional) ----------------
   firebase_deploy:
     if: ${{ vars.DO_FIREBASE_DEPLOY == '1' }}
     needs: autopilot
