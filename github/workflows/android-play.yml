@@ -1,0 +1,75 @@
+name: Android • Build & Upload to Play
+
+on:
+  workflow_dispatch:
+    inputs:
+      lane:
+        description: "fastlane lane (build_aab | deploy_closed | promote_to_prod | deploy_production)"
+        default: "deploy_closed"
+      aab_path:
+        description: "custom AAB path (optional)"
+        required: false
+
+jobs:
+  play:
+    runs-on: ubuntu-latest
+    env:
+      CI_BUILD_NUMBER: ${{ github.run_number }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Gradle cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+
+      - name: Restore upload keystore
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+        run: |
+          if [ -n "$ANDROID_KEYSTORE_BASE64" ]; then
+            echo "$ANDROID_KEYSTORE_BASE64" | base64 -d > $GITHUB_WORKSPACE/upload.keystore
+            echo "ANDROID_KEYSTORE_PATH=$GITHUB_WORKSPACE/upload.keystore" >> $GITHUB_ENV
+          else
+            echo "No keystore secret provided; build will be unsigned."
+          fi
+
+      - name: Setup Ruby & Fastlane
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.2"
+      - run: gem install fastlane -N
+
+      - name: Build AAB
+        env:
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_ALIAS_PASSWORD: ${{ secrets.ANDROID_KEY_ALIAS_PASSWORD }}
+        run: fastlane android build_aab
+
+      - name: Upload mapping (artifact)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: mappings
+          path: android/app/build/outputs/mapping/release/
+
+      - name: Run fastlane lane
+        env:
+          ANDROID_JSON_KEY: ${{ secrets.ANDROID_JSON_KEY }}
+          ANDROID_PACKAGE_NAME: ${{ secrets.ANDROID_PACKAGE_NAME }}
+          RELEASE_NOTES_EN: ${{ secrets.RELEASE_NOTES_EN }}
+          AAB_PATH: ${{ github.event.inputs.aab_path }}
+        run: |
+          LANE="${{ github.event.inputs.lane }}"
+          [ -z "$LANE" ] && LANE="deploy_closed"
+          fastlane $LANE
