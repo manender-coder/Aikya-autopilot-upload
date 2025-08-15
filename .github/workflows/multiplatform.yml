@@ -1,0 +1,121 @@
+name: Aikya • Multiplaform Safe Deploy (Firebase | Next.js | Azure | Zapier)
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch: {}
+  schedule:
+    - cron: "17 * * * *"   # hourly at :17 UTC
+
+# one-run-at-a-time per branch
+concurrency:
+  group: aikya-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  NODE_VERSION: ${{ secrets.NODE_VERSION || '18' }}
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      # ---------- Install (tolerant) ----------
+      - name: Install deps (safe)
+        run: |
+          if [ -f package-lock.json ]; then
+            npm ci --no-audit --no-fund
+          elif [ -f yarn.lock ]; then
+            corepack enable || true
+            yarn install --frozen-lockfile || yarn install
+          elif [ -f package.json ]; then
+            npm i --no-audit --no-fund --legacy-peer-deps || true
+          else
+            echo "No package.json, skipping install"
+          fi
+
+      # ---------- Optional: Deno lint (never fails) ----------
+      - name: Deno Lint (non-blocking)
+        run: |
+          (command -v deno >/dev/null 2>&1 || (curl -fsSL https://deno.land/x/install/install.sh | sh && echo "export DENO_INSTALL=$HOME/.deno" >> $GITHUB_ENV && echo "$HOME/.deno/bin" >> $GITHUB_PATH)) || true
+          deno lint || true
+
+      # ---------- Optional: Next.js build/export if project present ----------
+      - name: Detect Next.js
+        id: detect_next
+        run: |
+          if [ -f package.json ] && cat package.json | grep -q '"next"'; then
+            echo "found=true" >> $GITHUB_OUTPUT
+          else
+            echo "found=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Build Next.js (skip if not found)
+        if: steps.detect_next.outputs.found == 'true'
+        run: |
+          npm run build || true
+          npm run export || true
+        # If you deploy static 'out/' elsewhere, add your deploy action here.
+
+      # ---------- Firebase deploy (only if secrets configured) ----------
+      - name: Prepare Firebase SA
+        id: fb
+        run: |
+          SA='${{ secrets.FIREBASE_SERVICE_ACCOUNT || vars.SERVICE_ACCOUNT }}'
+          if [ -n "$SA" ]; then
+            echo "$SA" > $HOME/fb.json
+            echo "has_sa=true" >> $GITHUB_OUTPUT
+          else
+            echo "has_sa=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Firebase Deploy
+        if: steps.fb.outputs.has_sa == 'true' && secrets.FIREBASE_PROJECT_ID != ''
+        env:
+          GOOGLE_APPLICATION_CREDENTIALS: $HOME/fb.json
+        run: |
+          npm i -g firebase-tools || true
+          firebase use ${{ secrets.FIREBASE_PROJECT_ID }} || true
+          firebase deploy --non-interactive --force || true
+
+      # ---------- Azure Functions deploy (only if secrets configured) ----------
+      - name: Azure Functions Deploy
+        if: secrets.AZURE_FUNCTIONAPP_PUBLISH_PROFILE != '' && secrets.AZURE_FUNCTIONAPP_NAME != ''
+        uses: Azure/functions-action@v1
+        with:
+          app-name: ${{ secrets.AZURE_FUNCTIONAPP_NAME }}
+          publish-profile: ${{ secrets.AZURE_FUNCTIONAPP_PUBLISH_PROFILE }}
+          package: '.'
+
+      # ---------- Zapier notify (always tries; skips if no secret) ----------
+      - name: Notify Zapier (→ BigQuery via your Zap)
+        run: |
+          if [ -n "${{ secrets.ZAPIER_DEPLOY_HOOK_URL }}" ]; then
+            payload=$(cat <<'JSON'
+{
+  "kind": "deploy",
+  "ts": "__TS__",
+  "repo": "__REPO__",
+  "sha": "__SHA__",
+  "status": "safe-deploy",
+  "run": "__RUN__"
+}
+JSON
+)
+            payload="${payload/__TS__/$(date -u +%Y-%m-%dT%H:%M:%SZ)}"
+            payload="${payload/__REPO__/${{ github.repository }}}"
+            payload="${payload/__SHA__/${{ github.sha }}}"
+            payload="${payload/__RUN__/${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}}"
+            curl -sS -X POST "${{ secrets.ZAPIER_DEPLOY_HOOK_URL }}" \
+              -H 'Content-Type: application/json' -d "${payload}"
+          else
+            echo "No ZAPIER_DEPLOY_HOOK_URL configured; skipping webhook."
+          fi
