@@ -1,0 +1,135 @@
+name: Android CI/CD (Fastlane + Azure OIDC + Zapier)
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      lane:
+        description: "Fastlane lane (build_aab | deploy_closed | promote_to_prod | deploy_production)"
+        type: choice
+        required: true
+        default: deploy_closed
+        options:
+          - build_aab
+          - deploy_closed
+          - promote_to_prod
+          - deploy_production
+      aab_path:
+        description: "Custom AAB path (optional)"
+        required: false
+        default: ""
+
+permissions:
+  id-token: write     # required by Azure/login (OIDC)
+  contents: read
+
+jobs:
+  android:
+    runs-on: ubuntu-latest
+    env:
+      # Fastlane / Play
+      ANDROID_JSON_KEY: ${{ secrets.ANDROID_JSON_KEY }}            # full JSON (string) of the Play service account
+      ANDROID_PACKAGE_NAME: ${{ secrets.ANDROID_PACKAGE_NAME }}    # e.g. com.aikya.app
+      RELEASE_NOTES_EN: ${{ secrets.RELEASE_NOTES_EN }}            # optional
+      TRACK_DEFTRACK_DEFAULT: ${{ secrets.TRACK_DEFTRACK_DEFAULT }}# e.g. internal/alpha/beta/production
+
+      # Azure OIDC
+      AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+      AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+      AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      # Misc
+      CI_BUILD_NUMBER: ${{ github.run_number }}
+      AAB_PATH: ${{ github.event.inputs.aab_path }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # ----- Azure login (OIDC) -----
+      - name: Azure Login (OIDC)
+        uses: azure/login@v2
+        with:
+          client-id: ${{ env.AZURE_CLIENT_ID }}
+          tenant-id: ${{ env.AZURE_TENANT_ID }}
+          subscription-id: ${{ env.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Azure context check
+        uses: azure/cli@v2
+        with:
+          inlineScript: az account show
+
+      # ----- Android toolchain -----
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Gradle cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: gradle-${{ runner.os }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: gradle-${{ runner.os }}-
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.2"
+          bundler-cache: true
+
+      - name: Install Fastlane
+        run: |
+          gem install fastlane -N
+          fastlane --version
+
+      # ----- Build AAB (or use provided path) -----
+      - name: Build with Fastlane (build_aab)
+        if: ${{ github.event.inputs.lane == 'build_aab' || github.event.inputs.lane == '' }}
+        run: fastlane android build_aab
+
+      - name: Closed testing deploy
+        if: ${{ github.event.inputs.lane == 'deploy_closed' }}
+        run: |
+          if [ -n "${AAB_PATH}" ]; then
+            echo "Using custom AAB: ${AAB_PATH}"
+          fi
+          fastlane android deploy_closed aab_path:"${AAB_PATH}"
+
+      - name: Promote to production
+        if: ${{ github.event.inputs.lane == 'promote_to_prod' }}
+        run: fastlane android promote_to_prod
+
+      - name: Full production deploy
+        if: ${{ github.event.inputs.lane == 'deploy_production' }}
+        run: fastlane android deploy_production aab_path:"${AAB_PATH}"
+
+      # ----- Upload mapping.txt for reference -----
+      - name: Upload mapping artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: mapping-release
+          path: "**/build/outputs/mapping/release/mapping.txt"
+          if-no-files-found: ignore
+
+      # ----- Notify Zapier -----
+      - name: Send Zapier Webhook
+        if: always()
+        env:
+          ZAP_URL: ${{ secrets.ZAPIER_DEPLOY_HOOK_URL }}
+        run: |
+          STATUS="${{ job.status }}"
+          curl -sS -X POST "$ZAP_URL" \
+            -H "Content-Type: application/json" \
+            -d "$(jq -n \
+              --arg ts "$(date -u +"%Y-%m-%dT%H:%M:%SZ")" \
+              --arg repo "${{ github.repository }}" \
+              --arg sha "${{ github.sha }}" \
+              --arg status "$STATUS" \
+              --arg run "https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}" \
+              '{ts:$ts, repo:$repo, sha:$sha, status:$status, run:$run}')"
