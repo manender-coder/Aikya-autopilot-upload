@@ -1,0 +1,83 @@
+name: Android CI + Play
+
+on:
+  workflow_dispatch:
+    inputs:
+      lane:
+        description: "fastlane lane (build_aab | deploy_internal | promote_closed | promote_production)"
+        default: "deploy_internal"
+        required: true
+
+jobs:
+  android:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      id-token: write
+
+    env:
+      ANDROID_PACKAGE_NAME: ${{ secrets.ANDROID_PACKAGE_NAME }}
+      RELEASE_NOTES_EN: ${{ secrets.RELEASE_NOTES_EN }}
+      ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+      ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+      ANDROID_KEY_ALIAS_PASSWORD: ${{ secrets.ANDROID_KEY_ALIAS_PASSWORD }}
+      ANDROID_KEYSTORE_PATH: android/app/keystore.jks
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # Java for Gradle/AGP
+      - name: Setup JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      # Ruby for fastlane
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.2"
+          bundler-cache: true
+
+      - name: Install fastlane
+        run: |
+          gem install fastlane -N
+
+      # Play JSON (choose ONE of the blocks below)
+
+      # (A) If your secret ANDROID_JSON_KEY contains RAW JSON (recommended)
+      - name: Write Play JSON (raw)
+        run: |
+          mkdir -p "$HOME/.config"
+          printf '%s' "${{ secrets.ANDROID_JSON_KEY }}" > "$HOME/.config/play-api.json"
+          echo "GOOGLE_APPLICATION_CREDENTIALS=$HOME/.config/play-api.json" >> $GITHUB_ENV
+
+      # (B) If you stored Base64 in ANDROID_JSON_KEY_B64, use this instead
+      # - name: Write Play JSON (base64)
+      #   if: ${{ secrets.ANDROID_JSON_KEY_B64 != '' }}
+      #   run: |
+      #     mkdir -p "$HOME/.config"
+      #     echo "${{ secrets.ANDROID_JSON_KEY_B64 }}" | base64 -d > "$HOME/.config/play-api.json"
+      #     echo "GOOGLE_APPLICATION_CREDENTIALS=$HOME/.config/play-api.json" >> $GITHUB_ENV
+
+      # Optional: if your keystore is in repo, nothing to do. If you keep it as a secret base64:
+      # - name: Restore keystore from secret
+      #   if: ${{ secrets.ANDROID_KEYSTORE_B64 != '' }}
+      #   run: |
+      #     echo "${{ secrets.ANDROID_KEYSTORE_B64 }}" | base64 -d > android/app/keystore.jks
+
+      - name: Gradle cache
+        uses: gradle/actions/setup-gradle@v3
+
+      - name: Build AAB (fastlane build_aab)
+        run: |
+          cd android
+          fastlane android build_aab
+
+      - name: Run lane
+        run: |
+          cd android
+          fastlane android ${{ github.event.inputs.lane }}
