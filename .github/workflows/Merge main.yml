@@ -1,0 +1,346 @@
+# Create the "Aikya Final Merge" infra bundle with Terraform, GitHub Actions, and helper scripts
+import os, zipfile, textwrap, json, pathlib
+
+base = "/mnt/data/aikya-final-merge"
+paths = [
+    base,
+    f"{base}/infra",
+    f"{base}/infra/terraform",
+    f"{base}/.github",
+    f"{base}/.github/workflows",
+    f"{base}/scripts"
+]
+for p in paths:
+    os.makedirs(p, exist_ok=True)
+
+# ---------- Terraform files ----------
+provider_tf = textwrap.dedent("""
+    terraform {
+      required_version = ">= 1.6.0"
+      required_providers {
+        google = {
+          source  = "hashicorp/google"
+          version = ">= 5.0.0"
+        }
+      }
+      backend "gcs" {
+        bucket = "knowledge-base-bucket-aikya-charevati"
+        prefix = "tfstate/final-merge"
+      }
+    }
+    
+    provider "google" {
+      project = var.project_id
+      region  = var.region
+    }
+    
+    # Reference existing bucket
+    data "google_storage_bucket" "aikya" {
+      name = var.bucket_name
+    }
+""").strip()
+
+main_tf = textwrap.dedent("""
+    # Optional (advanced): manage bucket settings via Terraform.
+    # If the bucket already exists, import it first:
+    #   terraform import google_storage_bucket.aikya var.bucket_name
+    # Then apply to enforce settings.
+    resource "google_storage_bucket" "aikya" {
+      name     = var.bucket_name
+      location = var.bucket_location
+      project  = var.project_id
+    
+      # Safety
+      force_destroy = false
+    
+      # Security hardening
+      uniform_bucket_level_access = true
+      public_access_prevention    = "enforced"
+    
+      versioning {
+        enabled = true
+      }
+    
+      lifecycle_rule {
+        action { type = "Delete" }
+        condition {
+          age = 365
+        }
+      }
+    }
+    
+    # IAM Bindings
+    resource "google_storage_bucket_iam_binding" "admins" {
+      bucket = var.bucket_name
+      role   = "roles/storage.admin"
+      members = var.members_admin
+    }
+    
+    resource "google_storage_bucket_iam_binding" "object_admins" {
+      bucket = var.bucket_name
+      role   = "roles/storage.objectAdmin"
+      members = var.members_object_admin
+    }
+    
+    resource "google_storage_bucket_iam_binding" "viewers" {
+      bucket = var.bucket_name
+      role   = "roles/storage.objectViewer"
+      members = var.members_viewer
+    }
+""").strip()
+
+variables_tf = textwrap.dedent("""
+    variable "project_id" {
+      description = "GCP Project ID"
+      type        = string
+    }
+    
+    variable "region" {
+      description = "Default region for Google provider (storage is multi-regional by nature)"
+      type        = string
+      default     = "asia-south1"
+    }
+    
+    variable "bucket_name" {
+      description = "Existing (or to-be-managed) GCS bucket name"
+      type        = string
+      default     = "knowledge-base-bucket-aikya-charevati"
+    }
+    
+    variable "bucket_location" {
+      description = "Location for the bucket (used if resource is managed here)"
+      type        = string
+      default     = "ASIA"
+    }
+    
+    variable "members_admin" {
+      description = "List of principals with storage.admin"
+      type        = list(string)
+      default     = []
+    }
+    
+    variable "members_object_admin" {
+      description = "List of principals with storage.objectAdmin"
+      type        = list(string)
+      default     = []
+    }
+    
+    variable "members_viewer" {
+      description = "List of principals with storage.objectViewer"
+      type        = list(string)
+      default     = []
+    }
+""").strip()
+
+auto_tfvars = textwrap.dedent("""
+    # Example values — replace with real principals (emails, groups, or service accounts).
+    # Valid formats include:
+    #   user:alice@example.com
+    #   group:team@example.com
+    #   serviceAccount:aikya-upload@able-winter-463510-t8.iam.gserviceaccount.com
+    
+    project_id       = "able-winter-463510-t8"
+    bucket_name      = "knowledge-base-bucket-aikya-charevati"
+    bucket_location  = "ASIA"
+    region           = "asia-south1"
+    
+    members_admin = [
+      "serviceAccount:aikya-upload@able-winter-463510-t8.iam.gserviceaccount.com"
+    ]
+    
+    members_object_admin = [
+      # "user:REPLACE_WITH_EDITOR_EMAIL@example.com"
+    ]
+    
+    members_viewer = [
+      # "group:REPLACE_WITH_TEAM_GROUP@example.com"
+    ]
+""").strip()
+
+with open(f"{base}/infra/terraform/provider.tf", "w") as f:
+    f.write(provider_tf + "\n")
+with open(f"{base}/infra/terraform/main.tf", "w") as f:
+    f.write(main_tf + "\n")
+with open(f"{base}/infra/terraform/variables.tf", "w") as f:
+    f.write(variables_tf + "\n")
+with open(f"{base}/infra/terraform/terraform.auto.tfvars.example", "w") as f:
+    f.write(auto_tfvars + "\n")
+
+# ---------- GitHub Actions workflow ----------
+deploy_yml = textwrap.dedent("""
+    name: Aikya Final Merge Deploy
+    
+    on:
+      push:
+        branches: [ "main" ]
+      workflow_dispatch: {}
+    
+    concurrency:
+      group: aikya-final-merge
+      cancel-in-progress: false
+    
+    jobs:
+      deploy:
+        runs-on: ubuntu-latest
+        permissions:
+          contents: read
+          id-token: write
+        steps:
+          - name: Checkout
+            uses: actions/checkout@v4
+    
+          - name: Setup Node
+            uses: actions/setup-node@v4
+            with:
+              node-version: '20'
+    
+          - name: Setup gcloud
+            uses: google-github-actions/setup-gcloud@v2
+            with:
+              install_components: 'gcloud,gsutil'
+    
+          - name: Auth to GCP (Service Account JSON)
+            uses: google-github-actions/auth@v2
+            with:
+              credentials_json: ${{ secrets.GCP_SA_KEY }}
+    
+          - name: Verify GCS bucket
+            run: |
+              gsutil ls -L -b gs://${{ secrets.AIKYA_BUCKET_NAME }}
+    
+          - name: Upload build artifacts to GCS (optional example)
+            if: ${{ hashFiles('dist/**') != '' }}
+            run: |
+              gsutil -m rsync -r -d dist gs://${{ secrets.AIKYA_BUCKET_NAME }}/web-dist
+    
+          - name: Firebase Deploy
+            if: ${{ env.FIREBASE_DEPLOY == '1' }}
+            env:
+              FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
+            run: |
+              npm i -g firebase-tools
+              firebase deploy --only hosting --project ${{ secrets.FIREBASE_PROJECT_ID }}
+    
+          - name: Vercel Deploy (Build & Prod)
+            env:
+              VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+            run: |
+              npm i -g vercel
+              vercel pull --yes --environment=production --token $VERCEL_TOKEN
+              vercel build --prod --token $VERCEL_TOKEN
+              vercel deploy --prebuilt --prod --token $VERCEL_TOKEN
+    
+          - name: Caption/Autonorm sync (hook)
+            run: |
+              echo "Triggering caption-autonorm sync…"
+              # curl -X POST ${{ secrets.CAPTION_SYNC_URL }} -H "Authorization: Bearer ${{ secrets.CAPTION_SYNC_TOKEN }}"
+    
+          - name: Summary
+            run: |
+              echo "Aikya Final Merge pipeline complete."
+""").strip()
+
+with open(f"{base}/.github/workflows/aikya-final-merge.yml", "w") as f:
+    f.write(deploy_yml + "\n")
+
+# ---------- Scripts ----------
+verify_sh = textwrap.dedent("""
+    #!/usr/bin/env bash
+    set -euo pipefail
+    
+    BUCKET="${1:-knowledge-base-bucket-aikya-charevati}"
+    
+    echo "== Bucket info =="
+    gsutil ls -L -b "gs://${BUCKET}"
+    
+    echo "== IAM Policy =="
+    gcloud storage buckets get-iam-policy "${BUCKET}" --format=json | jq .
+    
+    echo "== Signed URL test (requires an object) =="
+    OBJ="$(gsutil ls "gs://${BUCKET}"/** | head -n1 || true)"
+    if [ -n "$OBJ" ]; then
+      echo "Testing signed URL for: $OBJ"
+      gcloud storage sign-url --method=GET --expires-in=1h "$OBJ" || true
+    else
+      echo "No objects found to sign."
+    fi
+""").strip()
+
+os.chmod(f"{base}/scripts", 0o755)
+with open(f"{base}/scripts/verify.sh", "w") as f:
+    f.write(verify_sh + "\n")
+os.chmod(f"{base}/scripts/verify.sh", 0o755)
+
+# ---------- README ----------
+readme = textwrap.dedent("""
+    # Aikya Final Merge – Infra, CI/CD & Autopilot
+    
+    **Mode:** Charevati Swayam Autopilot ♾️  
+    This bundle links Google Cloud Storage, Terraform, and GitHub Actions to your Aikya platform.
+    
+    ---
+    
+    ## 1) Prereqs
+    - Terraform >= 1.6
+    - gcloud SDK + gsutil
+    - GitHub CLI (optional)
+    - Existing GCS bucket: `knowledge-base-bucket-aikya-charevati`
+    
+    ## 2) Terraform (IAM + Bucket Settings)
+    ```bash
+    cd infra/terraform
+    
+    # Copy and edit example variables
+    cp terraform.auto.tfvars.example terraform.auto.tfvars
+    
+    # (Optional) If you want TF to manage the existing bucket's settings:
+    terraform init
+    terraform import google_storage_bucket.aikya knowledge-base-bucket-aikya-charevati
+    
+    # Apply IAM bindings and (optionally) bucket hardening
+    terraform apply -auto-approve
+    ```
+    
+    **Note on principals:** Use valid GCP principals like `user:me@example.com`, `group:team@example.com`, or `serviceAccount:svc@PROJECT.iam.gserviceaccount.com`.
+    
+    ## 3) GitHub Actions
+    Commit `.github/workflows/aikya-final-merge.yml` to your repo and configure these secrets:
+    
+    - `GCP_SA_KEY`                – Service Account JSON (with Storage Admin + Firebase deploy perms, if needed)
+    - `AIKYA_BUCKET_NAME`         – e.g. `knowledge-base-bucket-aikya-charevati`
+    - `FIREBASE_PROJECT_ID`       – your Firebase project id (optional)
+    - `FIREBASE_TOKEN`            – firebase CI deploy token (optional if using SA based deploy)
+    - `VERCEL_TOKEN`              – Vercel token
+    - (optional) `CAPTION_SYNC_URL`, `CAPTION_SYNC_TOKEN`
+    
+    Trigger:
+    - Push to `main` or manual `workflow_dispatch` in GitHub UI.
+    
+    ## 4) Verification
+    ```bash
+    ./scripts/verify.sh knowledge-base-bucket-aikya-charevati
+    ```
+    
+    ## 5) Notes
+    - This pipeline is idempotent and safe to re-run.
+    - `uniform_bucket_level_access` is enforced; ACLs are ignored.
+    - Public Access Prevention is enforced at the bucket level.
+    - Versioning is enabled for rollback of critical objects.
+    
+    **Charevati – Eternal Execution Flow ♾️**
+    ```
+""").strip()
+
+with open(f"{base}/README.md", "w") as f:
+    f.write(readme + "\n")
+
+# Zip the bundle
+zip_path = "/mnt/data/aikya-final-merge.zip"
+with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_DEFLATED) as z:
+    for root, dirs, files in os.walk(base):
+        for name in files:
+            full = os.path.join(root, name)
+            rel = os.path.relpath(full, base)
+            z.write(full, arcname=f"aikya-final-merge/{rel}")
+
+zip_path
