@@ -1,0 +1,16 @@
+android {
+  namespace "com.yourpackagename"      // <-- your package
+  compileSdk 34                         // 28+ is fine; use latest you can
+
+  defaultConfig {
+    applicationId "com.yourpackagename" // must match Play Console
+    minSdk 19
+    targetSdk 34
+    versionCode 1
+    versionName "1.0"
+  }
+}
+
+dependencies {
+  implementation "com.google.android.gms:play-services-games-v2:+"
+}
