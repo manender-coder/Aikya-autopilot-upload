@@ -1,0 +1,139 @@
+def versionProps = new Properties()
+def versionPropsFile = file("version.properties")
+if (versionPropsFile.canRead()) {
+    versionProps.load(new FileInputStream(versionPropsFile))
+} else {
+    throw new GradleException("Missing app/version.properties")
+}
+
+def ciRun = System.getenv("CI_BUILD_NUMBER") ?: "0"
+def versionCodeBase = (versionProps['VERSION_CODE_BASE'] ?: "1").toInteger()
+def autoVersionCode = versionCodeBase + ciRun.toInteger()
+def autoVersionName = versionProps['VERSION_NAME'] ?: "1.0.0"
+
+android {
+    defaultConfig {
+        applicationId System.getenv("ANDROID_PACKAGE_NAME") ?: "com.example.app"
+        versionCode autoVersionCode
+        versionName autoVersionName
+    }
+
+    signingConfigs {
+        release {
+            storeFile file(System.getenv("ANDROID_KEYSTORE_PATH") ?: "keystore.jks")
+            storePassword System.getenv("ANDROID_KEYSTORE_PASSWORD")
+            keyAlias System.getenv("ANDROID_KEY_ALIAS")
+            keyPassword System.getenv("ANDROID_KEY_ALIAS_PASSWORD")
+        }
+    }
+    buildTypes {
+        release {
+            signingConfig signingConfigs.release
+            minifyEnabled true
+            shrinkResources true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'),'proguard-rules.pro'
+        }
+    }
+}
+
+/** utility: print the path of the produced AAB */
+tasks.register("printAab") {
+    doLast {
+        def aabs = fileTree(dir: ".", include: "**/outputs/bundle/release/*.aab").files.sort()
+        if (aabs.isEmpty()) {
+            throw new GradleException("AAB not found; did you run :app:bundleRelease?")
+        } else {
+            println("AAB_PATH=" + aabs.last().absolutePath)
+        }
+    }
+}
+
+/** expose mapping file path for fastlane */
+tasks.register("printMapping") {
+    doLast {
+        def maps = fileTree(dir: ".", include: "**/outputs/mapping/release/mapping.txt").files.sort()
+        if (maps.isEmpty()) {
+            println("NO_MAPPING_FOUND")
+        } else {
+            println("MAPPING_PATH=" + maps.last().absolutePath)
+        }
+    }
+}default_platform(:android)
+
+# helper to auto changelog from last tag
+def changelog_text
+  log = Actions.sh("git log --pretty=format:'* %s' $(git describe --tags --abbrev=0 --always 2>/dev/null)..HEAD", log: false)
+  notes = log.strip.empty? ? ENV['RELEASE_NOTES_EN'].to_s : log
+  notes.empty? ? "Improvements and fixes." : notes
+end
+
+platform :android do
+  before_all do
+    UI.user_error!("ANDROID_PACKAGE_NAME missing") if ENV["ANDROID_PACKAGE_NAME"].to_s.empty?
+  end
+
+  desc "Bump version.properties VERSION_NAME (semantic) and tag"
+  lane :bump_version do |options|
+    new_name = options[:name] # e.g. "1.1.0"
+    UI.user_error!("Provide new version name via 'name:'") unless new_name
+
+    sh "grep -q '^VERSION_NAME=' app/version.properties"
+    sh %(gsed -i -e 's/^VERSION_NAME=.*/VERSION_NAME=#{new_name}/' app/version.properties || sed -i '' -e 's/^VERSION_NAME=.*/VERSION_NAME=#{new_name}/' app/version.properties)
+    sh "git add app/version.properties"
+    sh %(git commit -m "chore(version): #{new_name}")
+    sh %(git tag v#{new_name})
+  end
+
+  desc "Build release AAB"
+  lane :build_aab do
+    gradle(task: "clean")
+    gradle(task: "bundle", build_type: "Release")
+    aab = Dir.glob("**/outputs/bundle/release/*.aab").max
+    UI.user_error!("AAB not found") unless aab
+    Actions.lane_context[:AAB_PATH] = aab
+    UI.message("Built AAB: #{aab}")
+
+    # capture mapping path
+    map = Dir.glob("**/outputs/mapping/release/mapping.txt").max
+    Actions.lane_context[:MAPPING_PATH] = map if map
+  end
+
+  desc "Upload to Internal testing"
+  lane :deploy_internal do
+    aab = Actions.lane_context[:AAB_PATH] || Dir.glob("**/outputs/bundle/release/*.aab").max
+    UI.user_error!("AAB not found, run build_aab first") unless aab
+
+    mapping = Actions.lane_context[:MAPPING_PATH] || Dir.glob("**/outputs/mapping/release/mapping.txt").max
+    notes = changelog_text
+
+    upload_to_play_store(
+      aab: aab,
+      track: "internal",
+      release_status: "completed",
+      skip_upload_metadata: true,
+      skip_upload_images: true,
+      skip_upload_screenshots: true,
+      mapping: mapping,
+      changelog: { "en-US" => notes }
+    )
+  end
+
+  desc "Promote latest from Internal → Closed"
+  lane :promote_closed do
+    supply(
+      track: "internal",
+      track_promote_to: "closed",
+      release_status: "completed"
+    )
+  end
+
+  desc "Promote latest → Production (staged rollout)"
+  lane :promote_production do
+    supply(
+      track: "closed",
+      track_promote_to: "production",
+      rollout: 0.1, # 10%
+      release_status: "completed"
+    )
+  end
+end
