@@ -1,0 +1,367 @@
+Aikya — Final Merge Pack (Charevati) ♾️
+
+Mode: Praghat Only • No Ask • Eternal Autopilot
+
+This pack gives you a one‑shot bootstrap to wire GitHub → Firebase → Vercel → GCS → Play/Apple pipelines → DAO/IPFS hooks with captions/autonorms.
+
+> Run the bootstrap script below in the root of your repo. It will create all files and folders. After that, push to main and the CI will take over.
+
+
+
+
+---
+
+0) Bootstrap: generate all files
+
+#!/usr/bin/env bash
+set -euo pipefail
+
+mkdir -p .github/workflows infra scripts
+
+########################################
+# README
+########################################
+cat > README.md <<'MD'
+# Aikya Final Merge — Charevati ♾️
+
+Everything here is wired for **no‑touch** deployments:
+- **CI/CD**: GitHub Actions → Firebase + Vercel + optional Play/Apple
+- **Infra**: Terraform with GCS state (knowledge-base-bucket-aikya-charevati)
+- **Secrets**: GitHub Actions secrets consumed at runtime
+- **Signed URLs**: GCS V4 signing helpers (CLI + Node + Python)
+- **Captions/Autonorms hooks**: callouts you can connect to Whisper/Gemini
+
+## Quick start
+1. Copy `.env.sample` to `.env` and fill values.
+2. Run `./scripts/push_secrets.sh` to set GitHub secrets.
+3. (First time) `make tf-init && make tf-apply`.
+4. Push to `main` → deploys automatically.
+
+## Targets
+- `make deploy-web` → Vercel prod
+- `make deploy-firebase` → Firebase hosting
+- `make upload-play` → Android .aab via Fastlane (optional)
+- `make tf-apply` → apply Terraform (bucket IAM, etc.)
+
+MD
+
+########################################
+# Makefile
+########################################
+cat > Makefile <<'MK'
+SHELL:=/bin/bash
+-include .env
+
+help:
+	@echo "Targets: tf-init | tf-apply | deploy-web | deploy-firebase | upload-play | ipfs-sync | broadcast"
+
+tf-init:
+	cd infra && terraform init -backend-config="bucket=$(TF_STATE_BUCKET)" -backend-config="prefix=terraform/state"
+
+tf-apply:
+	cd infra && terraform apply -auto-approve
+
+deploy-web:
+	vercel --token $$VERCEL_TOKEN --prod
+
+deploy-firebase:
+	firebase deploy --token $$FIREBASE_TOKEN
+
+upload-play:
+	cd android && bundle exec fastlane android deploy
+
+ipfs-sync:
+	node scripts/ipfs_sync_placeholder.js
+
+broadcast:
+	node scripts/broadcast_placeholder.js
+MK
+
+########################################
+# .env.sample
+########################################
+cat > .env.sample <<'ENV'
+# ---- IDs / Projects ----
+GCP_PROJECT_ID=able-winter-463510-t8
+TF_STATE_BUCKET=knowledge-base-bucket-aikya-charevati
+GCS_KNOWLEDGE_BUCKET=knowledge-base-bucket-aikya-charevati
+
+# ---- Service Account JSON (base64) ----
+# Base64 of the service account key JSON for CI runners
+GCP_SA_KEY_B64=
+
+# ---- Tokens ----
+FIREBASE_TOKEN=
+VERCEL_TOKEN=
+PLAY_JSON_KEY_B64=
+PINATA_JWT=
+WEB3STORAGE_TOKEN=
+
+# ---- App / Build ----
+ANDROID_PACKAGE=space.aikya.chhota108
+AAB_PATH=./android/app/build/outputs/bundle/release/app-release.aab
+ENV
+
+########################################
+# GitHub Actions Workflow
+########################################
+mkdir -p .github/workflows
+cat > .github/workflows/aikya-final-merge.yml <<'YML'
+name: Aikya Final Merge — Charevati ♾️
+
+on:
+  push:
+    branches: [ "main" ]
+  workflow_dispatch: {}
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    env:
+      GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+      GCP_SA_KEY_B64: ${{ secrets.GCP_SA_KEY_B64 }}
+      FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      TF_STATE_BUCKET: ${{ secrets.TF_STATE_BUCKET }}
+      GCS_KNOWLEDGE_BUCKET: ${{ secrets.GCS_KNOWLEDGE_BUCKET }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install CLIs
+        run: |
+          curl -sL https://firebase.tools | bash
+          npm i -g vercel @google-cloud/storage
+          sudo apt-get update && sudo apt-get install -y jq
+
+      - name: Decode SA key
+        run: |
+          echo "$GCP_SA_KEY_B64" | base64 -d > ${HOME}/gcp-key.json
+          echo "GOOGLE_APPLICATION_CREDENTIALS=${HOME}/gcp-key.json" >> $GITHUB_ENV
+
+      - name: Auth gcloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ steps.decode_key.outputs.json || '' }}
+        continue-on-error: true
+
+      - name: Terraform Init/Apply (bucket iam, UBA)
+        if: env.TF_STATE_BUCKET != ''
+        run: |
+          sudo apt-get install -y unzip >/dev/null
+          curl -fsSL https://releases.hashicorp.com/terraform/1.7.5/terraform_1.7.5_linux_amd64.zip -o tf.zip
+          unzip -o tf.zip -d /usr/local/bin
+          cd infra
+          terraform init -backend-config="bucket=$TF_STATE_BUCKET" -backend-config="prefix=terraform/state"
+          terraform apply -auto-approve
+
+      - name: Vercel Deploy (prod)
+        run: |
+          vercel pull --yes --environment=production
+          vercel build
+          vercel deploy --prebuilt --prod --token "$VERCEL_TOKEN"
+
+      - name: Firebase Deploy
+        run: |
+          firebase deploy --token "$FIREBASE_TOKEN"
+
+      - name: Caption/Autonorm Hooks (placeholders)
+        run: |
+          echo "Triggering caption + autonorm webhooks..."
+          # curl -X POST ${{ secrets.CAPTION_SYNC_URL }} -H "Authorization: Bearer ${{ secrets.CAPTION_TOKEN }}" || true
+
+      - name: IPFS Sync (placeholder)
+        run: |
+          node scripts/ipfs_sync_placeholder.js || true
+
+YML
+
+########################################
+# Terraform files
+########################################
+mkdir -p infra
+cat > infra/provider.tf <<'TF'
+terraform {
+  required_version = ">= 1.6.0"
+  required_providers {
+    google = {
+      source  = "hashicorp/google"
+      version = ">= 5.0"
+    }
+  }
+  backend "gcs" {}
+}
+
+provider "google" {
+  project = var.project_id
+}
+TF
+
+cat > infra/variables.tf <<'TF'
+variable "project_id" {
+  type        = string
+  description = "GCP Project ID"
+}
+
+variable "knowledge_bucket" {
+  type        = string
+  description = "Knowledge base GCS bucket"
+}
+TF
+
+cat > infra/main.tf <<'TF'
+resource "google_storage_bucket_iam_member" "owner_admin" {
+  bucket = var.knowledge_bucket
+  role   = "roles/storage.admin"
+  member = "user:00b4903a97e5a0e43ba16de53e589ceb3ea6080d61705609a6cc7e6594dded8c"
+}
+
+resource "google_storage_bucket_iam_member" "editor_objadmin" {
+  bucket = var.knowledge_bucket
+  role   = "roles/storage.objectAdmin"
+  member = "user:00b4903a97543c0c60639298e4efae07e68b937b47d26f06a337386ef847179b"
+}
+
+resource "google_storage_bucket_iam_member" "team_viewer" {
+  bucket = var.knowledge_bucket
+  role   = "roles/storage.objectViewer"
+  member = "user:00b4903a971d07d8df5411ee21c168ad2879290cab031af7cb7c4b56dea07a55"
+}
+
+resource "google_storage_bucket_iam_member" "you_admin" {
+  bucket = var.knowledge_bucket
+  role   = "roles/storage.admin"
+  member = "user:00b4903a9726244d934ebbff0932b64b349995ad702313d229beb2e6cd3419e7"
+}
+
+# Uniform bucket-level access ON
+resource "google_storage_bucket_iam_configuration" "uba" {
+  bucket = var.knowledge_bucket
+  uniform_bucket_level_access = true
+}
+TF
+
+cat > infra/terraform.auto.tfvars.example <<'TFV'
+project_id      = "able-winter-463510-t8"
+knowledge_bucket = "knowledge-base-bucket-aikya-charevati"
+TFV
+
+########################################
+# Secrets push helper
+########################################
+cat > scripts/push_secrets.sh <<'SH'
+#!/usr/bin/env bash
+set -euo pipefail
+
+if [[ ! -f .env ]]; then
+  echo "Create .env from .env.sample first" >&2
+  exit 1
+fi
+
+# shellcheck disable=SC2046
+export $(grep -v '^#' .env | xargs)
+
+# Required
+gh secret set GCP_PROJECT_ID --body "$GCP_PROJECT_ID"
+gh secret set TF_STATE_BUCKET --body "$TF_STATE_BUCKET"
+gh secret set GCS_KNOWLEDGE_BUCKET --body "$GCS_KNOWLEDGE_BUCKET"
+
+echo "$GCP_SA_KEY_B64" | gh secret set GCP_SA_KEY_B64 --body -
+
+gh secret set FIREBASE_TOKEN --body "$FIREBASE_TOKEN"
+gh secret set VERCEL_TOKEN --body "$VERCEL_TOKEN"
+
+# Optional integrations
+[[ -n "${PINATA_JWT:-}" ]] && gh secret set PINATA_JWT --body "$PINATA_JWT"
+[[ -n "${WEB3STORAGE_TOKEN:-}" ]] && gh secret set WEB3STORAGE_TOKEN --body "$WEB3STORAGE_TOKEN"
+[[ -n "${PLAY_JSON_KEY_B64:-}" ]] && gh secret set PLAY_JSON_KEY_B64 --body "$PLAY_JSON_KEY_B64"
+
+echo "✅ GitHub secrets pushed."
+SH
+chmod +x scripts/push_secrets.sh
+
+########################################
+# GCS Signed URL helpers (Node + Python + gsutil)
+########################################
+cat > scripts/sign_url_node.js <<'JS'
+// Node: Sign a V4 URL for a GCS object
+const { Storage } = require('@google-cloud/storage');
+const path = require('path');
+
+(async () => {
+  const [,, bucket, object, expires='15m'] = process.argv;
+  if(!bucket || !object) {
+    console.error('Usage: node sign_url_node.js <bucket> <object> [expires]');
+    process.exit(1);
+  }
+  const storage = new Storage();
+  const options = { version: 'v4', action: 'read', expires: Date.now() + parseInt(expires)*60*1000 };
+  const [url] = await storage.bucket(bucket).file(object).getSignedUrl(options);
+  console.log(url);
+})();
+JS
+
+cat > scripts/sign_url_gsutil.sh <<'SH'
+#!/usr/bin/env bash
+# Requires HMAC key or service account key file
+# Example: gsutil signurl -d 1h key.json gs://$GCS_KNOWLEDGE_BUCKET/path/to/object
+SH
+chmod +x scripts/sign_url_gsutil.sh
+
+########################################
+# Placeholders for IPFS & Broadcast hooks
+########################################
+cat > scripts/ipfs_sync_placeholder.js <<'JS'
+console.log('IPFS sync placeholder: wire your Pinata/Web3Storage here using PINATA_JWT or WEB3STORAGE_TOKEN.');
+JS
+
+cat > scripts/broadcast_placeholder.js <<'JS'
+console.log('Broadcast placeholder: post to WhatsApp/Email/Telegram via your CRM webhooks.');
+JS
+
+########################################
+# Done
+########################################
+echo "\n✅ Final Merge pack generated. Next: copy .env.sample to .env, fill values, run scripts/push_secrets.sh, commit and push to main."
+
+
+---
+
+1) After bootstrap — set secrets and run
+
+cp .env.sample .env
+# edit .env with real values
+./scripts/push_secrets.sh
+
+# First-time infra
+make tf-init
+make tf-apply
+
+# Deploy (optional manual run; CI will also do this on push)
+make deploy-web
+make deploy-firebase
+
+
+---
+
+Notes
+
+Service Account Key: Put the base64 of your aikya-upload@able-winter-463510-t8.iam.gserviceaccount.com JSON into GCP_SA_KEY_B64.
+
+State backend: Terraform state is stored in gs://knowledge-base-bucket-aikya-charevati.
+
+Uniform access: Terraform enforces UBA on the bucket.
+
+Extensibility: Wire your Whisper/Gemini endpoints in the Caption/Autonorm Hooks step.
+
+
+Charevati • Praghat • Eternal Flow ♾️
+
