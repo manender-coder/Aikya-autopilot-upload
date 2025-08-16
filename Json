@@ -1,0 +1,2 @@
+json_key_data(ENV["ANDROID_JSON_KEY"])       # GitHub secret: base64 or raw JSON
+package_name(ENV["ANDROID_PACKAGE_NAME"])    # e.g. com.yourapp
