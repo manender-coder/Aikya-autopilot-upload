@@ -1,0 +1,214 @@
+name: Aikya • All-in-One Autopilot
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+    inputs:
+      android_lane:
+        description: "Fastlane (skip | build_aab | deploy_internal | promote_closed | promote_production)"
+        type: choice
+        options: [skip, build_aab, deploy_internal, promote_closed, promote_production]
+        default: skip
+      azure_deploy:
+        description: "Azure deploy (skip | webapp | function)"
+        type: choice
+        options: [skip, webapp, function]
+        default: skip
+      web_path:
+        description: "Azure Web App package path"
+        default: "."
+        required: false
+      function_path:
+        description: "Azure Function package path"
+        default: "./api"
+        required: false
+      firebase_deploy:
+        description: "Deploy Firebase (true/false)"
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+  id-token: write   # needed for Azure OIDC
+
+concurrency:
+  group: aikya-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  CI_BUILD_NUMBER: ${{ github.run_number }}
+  ANDROID_LANE: ${{ github.event.inputs.android_lane || 'skip' }}
+  AZURE_MODE: ${{ github.event.inputs.azure_deploy || 'skip' }}
+  WEB_PATH: ${{ github.event.inputs.web_path || '.' }}
+  FUNC_PATH: ${{ github.event.inputs.function_path || './api' }}
+  FIREBASE_TOGGLE: ${{ github.event.inputs.firebase_deploy || 'true' }}
+
+jobs:
+  autopilot:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # ---------- 0) Zapier ping helper payload ----------
+      - name: Prepare Zapier payload
+        id: prepzap
+        run: |
+          echo "ts=$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> "$GITHUB_OUTPUT"
+          echo "run_url=${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" >> "$GITHUB_OUTPUT"
+
+      # ---------- 1) Node setup (for Firebase or web builds) ----------
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - name: Install deps (tolerant, if package.json exists)
+        run: |
+          if [ -f package-lock.json ]; then
+            npm ci --no-audit --no-fund
+          elif [ -f yarn.lock ]; then
+            corepack enable || true
+            yarn install --frozen-lockfile || yarn install
+          elif [ -f package.json ]; then
+            npm i --no-audit --no-fund --legacy-peer-deps || true
+          else
+            echo "No package.json; skipping JS deps"
+          fi
+
+      # ---------- 2) Firebase deploy (guarded) ----------
+      - name: Write Firebase SA
+        if: ${{ env.FIREBASE_TOGGLE == 'true' && secrets.FIREBASE_SERVICE_ACCOUNT != '' }}
+        run: echo '${{ secrets.FIREBASE_SERVICE_ACCOUNT }}' > $HOME/fb.json
+
+      - name: Firebase Deploy
+        if: ${{ env.FIREBASE_TOGGLE == 'true' && secrets.FIREBASE_SERVICE_ACCOUNT != '' && secrets.FIREBASE_PROJECT_ID != '' }}
+        env:
+          GOOGLE_APPLICATION_CREDENTIALS: $HOME/fb.json
+        run: |
+          npm i -g firebase-tools || true
+          firebase use ${{ secrets.FIREBASE_PROJECT_ID }} || true
+          firebase deploy --non-interactive --force || true
+
+      # ---------- 3) Android build & Play Store (guarded & optional) ----------
+      - name: Setup JDK
+        if: ${{ env.ANDROID_LANE != 'skip' && hashFiles('android/**') != '' }}
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Setup Ruby + Fastlane
+        if: ${{ env.ANDROID_LANE != 'skip' && hashFiles('android/**') != '' }}
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.2"
+          bundler-cache: true
+      - if: ${{ env.ANDROID_LANE != 'skip' && hashFiles('android/**') != '' }}
+        run: gem install fastlane -N
+
+      - name: Play JSON (raw) -> file
+        if: ${{ env.ANDROID_LANE != 'skip' && secrets.ANDROID_JSON_KEY != '' }}
+        run: |
+          mkdir -p "$HOME/.config"
+          printf '%s' "${{ secrets.ANDROID_JSON_KEY }}" > "$HOME/.config/play.json"
+          echo "GOOGLE_APPLICATION_CREDENTIALS=$HOME/.config/play.json" >> $GITHUB_ENV
+
+      # (Uncomment if your keystore is a base64 secret)
+      # - name: Restore keystore
+      #   if: ${{ env.ANDROID_LANE != 'skip' && secrets.ANDROID_KEYSTORE_B64 != '' }}
+      #   run: echo "${{ secrets.ANDROID_KEYSTORE_B64 }}" | base64 -d > android/app/keystore.jks
+
+      - name: Build / Deploy with Fastlane
+        if: ${{ env.ANDROID_LANE != 'skip' && hashFiles('android/**') != '' }}
+        working-directory: android
+        env:
+          ANDROID_PACKAGE_NAME: ${{ secrets.ANDROID_PACKAGE_NAME }}
+          RELEASE_NOTES_EN: ${{ secrets.RELEASE_NOTES_EN }}
+          ANDROID_KEYSTORE_PATH: android/app/keystore.jks
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_ALIAS_PASSWORD: ${{ secrets.ANDROID_KEY_ALIAS_PASSWORD }}
+        run: |
+          case "${{ env.ANDROID_LANE }}" in
+            build_aab)           fastlane android build_aab ;;
+            deploy_internal)     fastlane android build_aab && fastlane android deploy_internal ;;
+            promote_closed)      fastlane android promote_closed ;;
+            promote_production)  fastlane android promote_production ;;
+            *) echo "Skipping Android";;
+          esac
+
+      - name: Upload AAB & mapping artifacts
+        if: ${{ env.ANDROID_LANE != 'skip' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-artifacts
+          path: |
+            **/outputs/bundle/release/*.aab
+            **/outputs/mapping/release/mapping.txt
+          if-no-files-found: ignore
+
+      # ---------- 4) Azure OIDC login + deploy (guarded & optional) ----------
+      - name: Azure Login (OIDC)
+        if: ${{ env.AZURE_MODE != 'skip' && secrets.AZURE_CLIENT_ID != '' && secrets.AZURE_TENANT_ID != '' && secrets.AZURE_SUBSCRIPTION_ID != '' }}
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Verify Azure context
+        if: ${{ env.AZURE_MODE != 'skip' && secrets.AZURE_CLIENT_ID != '' }}
+        uses: azure/cli@v2
+        with:
+          inlineScript: az account show
+
+      - name: Deploy Azure Web App
+        if: ${{ env.AZURE_MODE == 'webapp' && secrets.AZURE_WEBAPP_NAME != '' }}
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: ${{ secrets.AZURE_WEBAPP_NAME }}
+          package: ${{ env.WEB_PATH }}
+
+      - name: Deploy Azure Function App
+        if: ${{ env.AZURE_MODE == 'function' && secrets.AZURE_FUNCTIONAPP_NAME != '' }}
+        uses: Azure/functions-action@v1
+        with:
+          app-name: ${{ secrets.AZURE_FUNCTIONAPP_NAME }}
+          package: ${{ env.FUNC_PATH }}
+
+      # ---------- 5) Zip release bundle (for archives) ----------
+      - name: Package ZIP (web+android artifacts if present)
+        run: |
+          mkdir -p _bundle
+          # collect common outputs safely
+          cp -R ${{ env.WEB_PATH }} _bundle/web 2>/dev/null || true
+          mkdir -p _bundle/android
+          cp -R **/outputs/bundle/release/*.aab _bundle/android/ 2>/dev/null || true
+          cp -R **/outputs/mapping/release/mapping.txt _bundle/android/ 2>/dev/null || true
+          (cd _bundle && zip -r ../aikya_bundle.zip .) || true
+
+      - name: Upload bundle ZIP
+        uses: actions/upload-artifact@v4
+        with:
+          name: aikya_bundle
+          path: aikya_bundle.zip
+          if-no-files-found: ignore
+
+      # ---------- 6) Zapier → BigQuery log (always tries, safe-skip) ----------
+      - name: Notify Zapier
+        if: ${{ secrets.ZAPIER_DEPLOY_HOOK_URL != '' }}
+        run: |
+          curl -sS -X POST "${{ secrets.ZAPIER_DEPLOY_HOOK_URL }}" \
+            -H "Content-Type: application/json" \
+            -d "$(jq -n \
+              --arg kind "deploy" \
+              --arg ts "${{ steps.prepzap.outputs.ts }}" \
+              --arg repo "${{ github.repository }}" \
+              --arg sha "${{ github.sha }}" \
+              --arg status "${{ job.status }}" \
+              --arg run "${{ steps.prepzap.outputs.run_url }}" \
+              '{kind:$kind, ts:$ts, repo:$repo, sha:$sha, status:$status, run:$run}')"
