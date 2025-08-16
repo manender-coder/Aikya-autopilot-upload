@@ -1,0 +1,92 @@
+name: Android CI + Play
+
+on:
+  workflow_dispatch:
+    inputs:
+      lane:
+        description: "fastlane lane (build_aab | deploy_internal | promote_closed | promote_production)"
+        type: choice
+        options: [build_aab, deploy_internal, promote_closed, promote_production]
+        default: deploy_internal
+
+concurrency:
+  group: android-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  android:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    permissions:
+      contents: read
+      id-token: write
+
+    env:
+      CI_BUILD_NUMBER: ${{ github.run_number }}
+      ANDROID_PACKAGE_NAME: ${{ secrets.ANDROID_PACKAGE_NAME }}
+      RELEASE_NOTES_EN: ${{ secrets.RELEASE_NOTES_EN }}
+      ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+      ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+      ANDROID_KEY_ALIAS_PASSWORD: ${{ secrets.ANDROID_KEY_ALIAS_PASSWORD }}
+      ANDROID_KEYSTORE_PATH: android/app/keystore.jks
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.2"
+          bundler-cache: true
+
+      - name: Install fastlane
+        run: gem install fastlane -N
+
+      # Play JSON (RAW)
+      - name: Write Play credentials
+        run: |
+          mkdir -p "$HOME/.config"
+          printf '%s' "${{ secrets.ANDROID_JSON_KEY }}" > "$HOME/.config/play.json"
+          echo "GOOGLE_APPLICATION_CREDENTIALS=$HOME/.config/play.json" >> $GITHUB_ENV
+
+      # If you keep the keystore as base64 secret, uncomment:
+      # - name: Restore keystore
+      #   run: echo "${{ secrets.ANDROID_KEYSTORE_B64 }}" | base64 -d > android/app/keystore.jks
+
+      - name: Gradle cache
+        uses: gradle/actions/setup-gradle@v3
+
+      - name: Build AAB (and capture mapping)
+        run: |
+          cd android
+          fastlane android build_aab
+          ./gradlew printAab printMapping | tee ../paths.txt
+        shell: bash
+
+      - name: Parse paths
+        id: paths
+        run: |
+          AAB=$(grep -o 'AAB_PATH=.*' paths.txt | tail -n1 | cut -d= -f2-)
+          MAP=$(grep -o 'MAPPING_PATH=.*' paths.txt | tail -n1 | cut -d= -f2- || true)
+          echo "aab=$AAB" >> $GITHUB_OUTPUT
+          echo "mapping=$MAP" >> $GITHUB_OUTPUT
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-release
+          path: |
+            ${{ steps.paths.outputs.aab }}
+            ${{ steps.paths.outputs.mapping }}
+
+      - name: Run lane (deploy/promote)
+        run: |
+          cd android
+          fastlane android ${{ github.event.inputs.lane }}
