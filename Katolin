@@ -1,0 +1,16 @@
+import com.google.android.gms.games.PlayGames
+
+private fun ensurePlayGamesSignIn() {
+    val signInClient = PlayGames.getGamesSignInClient(this)
+
+    signInClient.isAuthenticated.addOnCompleteListener { task ->
+        val authenticated = task.isSuccessful && task.result.isAuthenticated
+        if (!authenticated) {
+            signInClient.signIn().addOnCompleteListener { result ->
+                // result.isSuccessful -> signed in
+            }
+        } else {
+            // already signed in
+        }
+    }
+}
