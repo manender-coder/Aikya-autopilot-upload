@@ -1,0 +1,67 @@
+default_platform(:android)
+
+platform :android do
+  # Shared parameters
+  before_all do
+    UI.user_error!("ANDROID_PACKAGE_NAME missing") if ENV["ANDROID_PACKAGE_NAME"].to_s.empty?
+    UI.user_error!("RELEASE_NOTES_EN missing") if ENV["RELEASE_NOTES_EN"].to_s.empty?
+  end
+
+  desc "Build a release AAB (signed)"
+  lane :build_aab do
+    gradle(
+      task: "clean"
+    )
+
+    # Ensure we use release signing config from Gradle
+    gradle(
+      task: "bundle",
+      build_type: "Release" # runs :app:bundleRelease
+    )
+
+    # Expose AAB path in lane context
+    Dir.glob("**/outputs/bundle/release/*.aab").sort.last.then do |aab|
+      UI.user_error!("AAB not found") unless aab
+      Actions.lane_context[:AAB_PATH] = aab
+      UI.message("Built AAB: #{aab}")
+    end
+  end
+
+  desc "Upload to Play Internal testing"
+  lane :deploy_internal do
+    aab_path = Actions.lane_context[:AAB_PATH]
+    aab_path ||= Dir.glob("**/outputs/bundle/release/*.aab").sort.last
+    UI.user_error!("AAB not found; run build_aab first") unless aab_path
+
+    upload_to_play_store(
+      aab: aab_path,
+      track: "internal",
+      rollout: 1.0,                 # 100% testers on internal
+      skip_upload_metadata: true,
+      skip_upload_changelogs: false,
+      release_status: "completed",
+      changelog: {
+        "en-US" => ENV["RELEASE_NOTES_EN"]
+      }
+    )
+  end
+
+  desc "Promote the latest release to Closed testing"
+  lane :promote_closed do
+    supply(
+      track: "internal",
+      track_promote_to: "closed",
+      release_status: "completed"
+    )
+  end
+
+  desc "Promote the latest release to Production"
+  lane :promote_production do
+    supply(
+      track: "closed",              # or "internal" if you want direct
+      track_promote_to: "production",
+      release_status: "completed",
+      rollout: 0.1                  # staged rollout (10%); adjust or remove
+    )
+  end
+end
