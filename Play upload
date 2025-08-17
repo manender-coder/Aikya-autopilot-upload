@@ -1,0 +1,62 @@
+name: Android Play Upload
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-sign-upload:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Restore keystore from Base64
+        run: |
+          echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 -d > $HOME/upload-keystore.jks
+
+      - name: Make Gradle executable
+        run: chmod +x ./gradlew
+
+      # Build a SIGNED release .aab without touching your gradle files
+      - name: Build signed AAB
+        run: |
+          ./gradlew clean bundleRelease \
+            -Pandroid.injected.signing.store.file=$HOME/upload-keystore.jks \
+            -Pandroid.injected.signing.store.password='${{ secrets.ANDROID_KEYSTORE_PASSWORD }}' \
+            -Pandroid.injected.signing.key.alias='${{ secrets.ANDROID_KEY_ALIAS }}' \
+            -Pandroid.injected.signing.key.password='${{ secrets.ANDROID_KEY_PASSWORD }}' \
+            --no-daemon
+
+      - name: Find AAB
+        id: aab
+        run: echo "path=$(find . -name '*.aab' -path '*/release/*' | head -n 1)" >> $GITHUB_OUTPUT
+
+      - name: Upload AAB as artifact (for download)
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-bundle
+          path: ${{ steps.aab.outputs.path }}
+
+      - name: Upload to Google Play (Closed testing)
+        uses: r0adkll/upload-google-play@v1
+        with:
+          serviceAccountJsonPlainText: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
+          packageName: ${{ vars.ANDROID_PACKAGE_NAME }}
+          releaseFiles: ${{ steps.aab.outputs.path }}
+          track: closed
+          status: completed  # set 'draft' if you want to review first
