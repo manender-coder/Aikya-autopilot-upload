@@ -1,0 +1,11 @@
+steps:
+  - name: 'gcr.io/cloud-builders/gcloud'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        echo "🚀 Starting Aikya Autopilot Deploy"
+        echo "✅ Branch: $BRANCH_NAME"
+
+options:
+  logging: CLOUD_LOGGING_ONLY
