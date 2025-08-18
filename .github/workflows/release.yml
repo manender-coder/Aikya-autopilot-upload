@@ -1,0 +1,70 @@
+name: Build & Upload to Play Store
+
+on:
+  push:
+    branches: [ main ]          # main पर push होते ही चले
+  workflow_dispatch:            # जरूरत पड़े तो मैन्युअली भी चला सकते हैं
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      # ---- Android keystore (upload key) तैयार करें ----
+      - name: Decode upload keystore
+        run: |
+          echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 -d > upload-keystore.jks
+
+      - name: Configure signing for Gradle
+        run: |
+          mkdir -p ~/.gradle
+          cat >> ~/.gradle/gradle.properties <<'EOF'
+          MY_STORE_FILE=upload-keystore.jks
+          MY_STORE_PASSWORD=${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          MY_KEY_ALIAS=${{ secrets.ANDROID_KEY_ALIAS }}
+          MY_KEY_PASSWORD=${{ secrets.ANDROID_KEY_PASSWORD }}
+          EOF
+
+      # (Optional) versionCode auto-bump — काम न करे तो हटाया जा सकता है
+      - name: Auto bump versionCode
+        run: |
+          FILE="app/build.gradle"
+          [ -f "app/build.gradle.kts" ] && FILE="app/build.gradle.kts"
+          if [ -f "$FILE" ]; then
+            # simple bump for "versionCode 123" or "versionCode = 123"
+            if grep -q "versionCode" "$FILE"; then
+              CUR=$(grep -Eo "versionCode\s*=?\s*[0-9]+" "$FILE" | tail -1 | grep -Eo "[0-9]+")
+              NEW=$((CUR+1))
+              sed -i -E "s/versionCode\s*=?\s*[0-9]+/versionCode = $NEW/g; s/versionCode\s*[0-9]+/versionCode $NEW/g" "$FILE"
+            fi
+          fi
+
+      - name: Grant execute for Gradle
+        run: chmod +x ./gradlew
+
+      - name: Build Release AAB
+        env:
+          # अगर आपने signingConfigs में ऊपर वाले gradle.properties keys यूज़ किए हैं, तो कुछ और नहीं चाहिए
+          # ANDROID_HOME etc. Gradle/AGP खुद मैनेज कर लेगा
+          CI: true
+        run: ./gradlew bundleRelease
+
+      # ---- Play Console Upload ----
+      - name: Upload to Google Play (Internal track)
+        uses: r0adkll/upload-google-play@v1
+        with:
+          serviceAccountJsonPlainText: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}   # आपके secret का नाम
+          packageName: ${{ secrets.ANDROID_PACKAGE_NAME }}                        # e.g. com.aikya.spiritual
+          releaseFiles: app/build/outputs/bundle/release/app-release.aab
+          track: internal
+          status: completed   # चाहें तो 'draft' रखें
+          # whatsNewDirectory: whatsnew  # (optional) changelog फ़ोल्डर
