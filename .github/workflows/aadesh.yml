@@ -1,0 +1,30 @@
+name: Aadesh Trigger
+
+on:
+  issue_comment:
+    types: [created]         # kisi issue me comment aate hi
+  workflow_dispatch:         # manual run (Actions se)
+
+permissions:
+  actions: write             # createWorkflowDispatch call ke liye
+
+jobs:
+  summon:
+    if: |
+      github.event_name == 'workflow_dispatch' ||
+      contains(github.event.comment.body, 'Aadesh') ||
+      contains(github.event.comment.body, 'aadesh') ||
+      contains(github.event.comment.body, 'charevati') ||
+      contains(github.event.comment.body, 'चरेवति')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Call Kalki Autopilot
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.actions.createWorkflowDispatch({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              workflow_id: 'autopilot.yml',   // aapka main CI file ka naam
+              ref: 'main'
+            })
