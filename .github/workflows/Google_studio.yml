@@ -1,3 +1,0 @@
-env:
-  GOOGLE_API: ${{ secrets.Google_api_key }}AIzaSyDbGYa3cGvIF8h3IHtRnqLXVnoXdYvu7oE
-
