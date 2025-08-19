@@ -1,4 +1,5 @@
 name: Build & Upload AAB to Play Store
+
 on:
   push:
     branches: [ "main" ]
@@ -20,7 +21,7 @@ jobs:
         uses: gradle/actions/setup-gradle@v3
 
       - name: Build AAB
-        run: ./gradlew bundleRelease
+        run: ./gradlew clean bundleRelease
 
       - name: Upload to Play Store
         uses: r0adkll/upload-google-play@v1
@@ -28,4 +29,4 @@ jobs:
           serviceAccountJsonPlainText: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
           packageName: ${{ secrets.ANDROID_PACKAGE_NAME }}
           releaseFile: app/build/outputs/bundle/release/app-release.aab
-          track: production
+          track: internal
