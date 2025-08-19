@@ -1,0 +1,46 @@
+messages:
+  - role: system
+    content: |-
+      buildscript {
+          repositories {
+              google()
+              mavenCentral()
+          }
+          dependencies {
+              // If you still use legacy buildscript for plugins, you can leave empty
+          }
+      }
+
+      allprojects {
+          repositories {
+              google()
+              mavenCentral()
+          }
+      }
+
+      task clean(type: Delete) {
+          delete rootProject.buildDir
+      }
+  - role: user
+    content: |-
+      buildscript {
+          repositories {
+              google()
+              mavenCentral()
+          }
+          dependencies {
+              // If you still use legacy buildscript for plugins, you can leave empty
+          }
+      }
+
+      allprojects {
+          repositories {
+              google()
+              mavenCentral()
+          }
+      }
+
+      task clean(type: Delete) {
+          delete rootProject.buildDir
+      }
+model: openai/gpt-4o
