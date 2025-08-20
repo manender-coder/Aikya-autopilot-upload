@@ -1,0 +1,6 @@
+name: Upload Google
+
+on:
+  push:
+    branches:
+      - main
