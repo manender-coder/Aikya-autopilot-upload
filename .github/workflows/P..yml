@@ -1,0 +1,20 @@
+mkdir -p .github/workflows
+
+cat > .github/workflows/build.yml <<'EOF'
+name: Test Workflow
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  hello:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "✅ Workflow enabled and running!"
+EOF
+
+git add .github/workflows/build.yml
+git commit -m "Add new test workflow"
+git push origin main
