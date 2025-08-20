@@ -1,0 +1,81 @@
+name: Build & Upload AAB to Play Store
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-upload:
+    runs-on: ubuntu-latest
+    env:
+      PACKAGE_NAME: com.aikya.spiritual.platform
+      SITE_URL: https://aikya.space
+      MANIFEST_URL: https://aikya.space/manifest.json
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Setup JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Accept Android SDK licenses
+        run: yes | sdkmanager --licenses
+
+      - name: Install Bubblewrap CLI
+        run: npm i -g @bubblewrap/cli
+
+      - name: Generate TWA project (first run only)
+        run: |
+          if [ ! -d "android" ]; then
+            bubblewrap init \
+              --url "${SITE_URL}" \
+              --manifest "${MANIFEST_URL}" \
+              --packageId "${PACKAGE_NAME}" \
+              --name "Aikya Autopilot" \
+              --directory android
+          fi
+
+      - name: Restore/Write keystore & props
+        run: |
+          echo "$KEYSTORE_BASE64" | base64 -d > android/keystore.jks
+          cat > android/keystore.properties <<EOF
+          storeFile=keystore.jks
+          storePassword=${{ secrets.KEYSTORE_PASSWORD }}
+          keyAlias=${{ secrets.KEY_ALIAS }}
+          keyPassword=${{ secrets.KEY_PASSWORD }}
+          EOF
+
+      - name: Build AAB (release)
+        working-directory: android
+        run: ./gradlew --no-daemon clean bundleRelease
+
+      - name: Upload AAB artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-release-aab
+          path: android/app/build/outputs/bundle/release/*.aab
+
+      - name: Upload to Google Play (Internal)
+        uses: r0adkll/upload-google-play@v1
+        with:
+          serviceAccountJsonPlain: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
+          packageName: ${{ env.PACKAGE_NAME }}
+          releaseFiles: android/app/build/outputs/bundle/release/*.aab
+          track: internal
+          status: completed
