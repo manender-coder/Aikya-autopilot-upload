@@ -1,0 +1,14 @@
+- name: Setup JDK
+  uses: actions/setup-java@v3
+  with:
+    java-version: '17'
+    distribution: 'temurin'
+
+- name: Install Bubblewrap
+  run: npm install -g @bubblewrap/cli
+
+- name: Init TWA
+  run: bubblewrap init --manifest https://aikya.space/manifest.json
+
+- name: Build AAB
+  run: ./gradlew bundleRelease
