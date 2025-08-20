@@ -1,0 +1,87 @@
+name: Build & (optional) Upload TWA AAB
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+env:
+  SITE_URL: https://aikya.space
+  WEB_MANIFEST_URL: https://aikya.space/manifest.json
+  APP_NAME: Aikya Autopilot
+  PACKAGE_ID: ${{ secrets.ANDROID_PACKAGE_NAME }}
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+      - uses: android-actions/setup-android@v3
+
+      # 🔎 Preflight: make sure required secrets exist
+      - name: Preflight secrets
+        run: |
+          for v in ANDROID_PACKAGE_NAME ANDROID_KEY_ALIAS ANDROID_KEY_PASSWORD ANDROID_KEYSTORE_BASE64; do
+            if [ -z "${!v}" ]; then
+              echo "::error title=Missing secret::$v is empty"; exit 1
+            fi
+          done
+        env:
+          ANDROID_PACKAGE_NAME: ${{ secrets.ANDROID_PACKAGE_NAME }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+
+      - name: Install Bubblewrap CLI
+        run: npm i -g @bubblewrap/cli
+
+      - name: Recreate upload keystore
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+        run: |
+          echo "$ANDROID_KEYSTORE_BASE64" | base64 -d > upload-keystore.jks
+          keytool -list -v -keystore upload-keystore.jks -storepass "${{ secrets.ANDROID_KEY_PASSWORD }}" >/dev/null
+
+      - name: Init Bubblewrap project
+        run: |
+          npx @bubblewrap/cli init \
+            --url "$SITE_URL" \
+            --manifest "$WEB_MANIFEST_URL" \
+            --packageId "$PACKAGE_ID" \
+            --name "$APP_NAME" \
+            --directory android
+          ls -la android
+
+      - name: Build AAB (release)
+        working-directory: android
+        env:
+          BUBBLEWRAP_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+          BUBBLEWRAP_KEY_PASSWORD:     ${{ secrets.ANDROID_KEY_PASSWORD }}
+          ANDROID_KEY_ALIAS:           ${{ secrets.ANDROID_KEY_ALIAS }}
+        run: |
+          bubblewrap build \
+            --signingKey ../upload-keystore.jks \
+            --signingKeyAlias "$ANDROID_KEY_ALIAS"
+          ls -lah app/build/outputs/bundle/release
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: aikya-aab
+          path: android/app/build/outputs/bundle/release/app-release.aab
+
+      # Optional Play upload (only runs if secret present)
+      - name: Upload to Google Play (internal)
+        if: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON != '' }}
+        uses: r0adkll/upload-google-play@v1
+        with:
+          serviceAccountJsonPlainText: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
+          packageName: ${{ secrets.ANDROID_PACKAGE_NAME }}
+          releaseFiles: android/app/build/outputs/bundle/release/app-release.aab
+          track: internal
+          status: draft
