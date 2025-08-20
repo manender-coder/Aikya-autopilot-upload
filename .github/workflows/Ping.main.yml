@@ -1,0 +1,11 @@
+name: Ping
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "✅ Workflow chal raha hai aur green hona chahiye"
