@@ -1,0 +1,15 @@
+# .github/workflows/hello.yml
+name: Hello World Test
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check environment
+        run: echo "✅ Actions are working properly!"
