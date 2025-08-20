@@ -1,0 +1,2 @@
+- uses: actions/checkout@8ade135a41bc03ea4407ab395ab151b926d44f25
+- uses: actions/setup-node@1a4442cacd436585916779262731d5b162bc6ec7
