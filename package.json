@@ -1,14 +1,33 @@
 {
   "name": "aikya-next-app",
   "version": "1.0.0",
+  "private": true,
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start"
   },
   "dependencies": {
-    "next": "latest",
-    "react": "latest",
-    "react-dom": "latest"
-  }
+    "@vercel/speed-insights": "^1.2.0",
+    "next": "^15.5.2",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@types/react": "19.1.10"
+  },
+  "description": "Reality deployment active. ♾️",
+  "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://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@github.com/manender-coder/aikya-autopilot-upload.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/manender-coder/aikya-autopilot-upload/issues"
+  },
+  "homepage": "https://github.com/manender-coder/aikya-autopilot-upload#readme"
 }
