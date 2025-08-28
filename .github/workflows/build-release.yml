@@ -39,3 +39,17 @@ jobs:
           releaseFiles: android/app/build/outputs/bundle/release/app-release.aab
           track: internal
 
+name: Build & Upload Android AAB ♾️
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+
+name: Build & Upload Android AAB ♾️
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
