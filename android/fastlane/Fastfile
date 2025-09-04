@@ -1,0 +1,11 @@
+default_platform(:android)
+
+platform :android do
+  desc "Upload AAB to Google Play Internal Testing"
+  lane :internal do
+    upload_to_play_store(
+      track: "internal",
+      aab: "../latest.aab" # <- correct relative path
+    )
+  end
+end

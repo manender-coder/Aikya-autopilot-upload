@@ -1,0 +1,2 @@
+json_key_file("/data/data/com.termux/files/home/myApp/play_console_key.json")
+package_name("com.aikya.spritual.platform")
