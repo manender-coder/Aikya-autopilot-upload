@@ -1,0 +1,68 @@
+name: Aikya Autopilot Build & Deploy
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Setup Node
+      uses: actions/setup-node@v4
+      with:
+        node-version: 20
+
+    - name: Install EAS CLI
+      run: npm install -g eas-cli
+
+    - name: Setup Ruby & Fastlane
+      uses: ruby/setup-ruby@v1
+      with:
+        ruby-version: '3.2'
+    - name: Install fastlane
+      run: gem install fastlane -NV
+
+    - name: Configure expo token
+      env:
+        EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+      run: echo "EXPO_TOKEN set"
+
+    - name: Start EAS build
+      env:
+        EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+      run: |
+        eas build -p android --profile production --non-interactive --json > /tmp/eas_build_output.json
+        jq -r '.id' /tmp/eas_build_output.json > /tmp/build_id.txt
+        BUILD_ID=$(cat /tmp/build_id.txt)
+        echo "BUILD_ID=$BUILD_ID"
+        for i in {1..60}; do
+          status=$(eas build:list --platform android --limit 1 --json | jq -r '.[0].status' || echo unknown)
+          echo "status: $status"
+          if [ "$status" = "finished" ]; then break; fi
+          if [ "$status" = "errored" ]; then exit 1; fi
+          sleep 30
+        done
+        eas build:download --platform android --id $BUILD_ID --output latest.aab
+
+    - name: Decode Play Service JSON
+      run: |
+        echo "${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}" > android/fastlane/play-service.json
+        chmod 600 android/fastlane/play-service.json
+
+    - name: Deploy to Internal
+      run: |
+        cd android
+        fastlane internal
+
+    - name: Promote to production (10%)
+      if: success()
+      run: |
+        cd android
+        fastlane promote_production

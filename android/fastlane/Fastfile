@@ -1,11 +1,60 @@
 default_platform(:android)
 
 platform :android do
-  desc "Upload AAB to Google Play Internal Testing"
+
+  desc "Build AAB with EAS and upload to Play Internal"
+  lane :auto_internal do
+    sh("eas build -p android --profile production --non-interactive --json > /tmp/eas-build-output.json")
+    build_id = JSON.parse(File.read('/tmp/eas-build-output.json'))["id"] rescue nil
+    UI.message("EAS build id: #{build_id}") if build_id
+    sh("eas build:download --platform android --id #{build_id} --output ../latest.aab") if build_id
+    upload_to_play_store(
+      track: "internal",
+      aab: "../latest.aab",
+      json_key: "fastlane/play-service.json",
+      skip_upload_metadata: true,
+      skip_upload_changelogs: true,
+      skip_upload_images: true,
+      skip_upload_screenshots: true
+    )
+    sh("echo 'INTERNAL_DEPLOY_DONE'")
+  end
+
+  desc "Upload existing AAB to Internal"
   lane :internal do
     upload_to_play_store(
       track: "internal",
-      aab: "../latest.aab" # <- correct relative path
+      aab: "../latest.aab",
+      json_key: "fastlane/play-service.json",
+      skip_upload_metadata: true,
+      skip_upload_changelogs: true,
+      skip_upload_images: true,
+      skip_upload_screenshots: true
     )
   end
+
+  desc "Promote Internal → Production with staged rollout (10%)"
+  lane :promote_production do
+    upload_to_play_store(
+      track: "production",
+      aab: "../latest.aab",
+      json_key: "fastlane/play-service.json",
+      rollout: 0.10,
+      release_status: "completed"
+    )
+    sh("echo 'PRODUCTION_ROLLOUT_STARTED 10%'")
+  end
+
+  desc "Fully promote (100%)"
+  lane :promote_100 do
+    upload_to_play_store(
+      track: "production",
+      aab: "../latest.aab",
+      json_key: "fastlane/play-service.json",
+      rollout: 1.0,
+      release_status: "completed"
+    )
+    sh("echo 'PRODUCTION_ROLLOUT_100%'")
+  end
+
 end
