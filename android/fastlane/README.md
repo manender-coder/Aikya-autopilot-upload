@@ -21,7 +21,15 @@ For _fastlane_ installation instructions, see [Installing _fastlane_](https://do
 [bundle exec] fastlane android internal
 ```
 
-Upload AAB to Google Play Internal Testing
+Upload AAB to Google Play (Internal Track)
+
+### android production
+
+```sh
+[bundle exec] fastlane android production
+```
+
+Upload AAB to Google Play (Production)
 
 ----
 
