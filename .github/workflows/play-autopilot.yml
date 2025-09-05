@@ -2,48 +2,64 @@ name: Aikya Autopilot Build & Deploy
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ main ]
   workflow_dispatch:
 
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
+    timeout-minutes: 180
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0   # full repo clone
 
-      - name: Setup Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: 18
+    - name: Setup Node
+      uses: actions/setup-node@v4
+      with:
+        node-version: 20
 
-      - name: Install EAS CLI
-        run: npm install -g eas-cli
+    - name: Install EAS CLI
+      run: npm install -g eas-cli
 
-      - name: Setup Ruby & Fastlane
-        uses: ruby/setup-ruby@v1
-        with:
-          ruby-version: '3.2'
+    - name: Setup Ruby & Fastlane
+      uses: ruby/setup-ruby@v1
+      with:
+        ruby-version: '3.2'
 
-      - name: Install fastlane
-        run: gem install fastlane
+    - name: Install fastlane
+      run: gem install fastlane -NV
 
-      - name: Configure Expo token
-        run: |
-          echo "EXPO_TOKEN=${{ secrets.EXPO_TOKEN }}" >> $GITHUB_ENV
+    - name: Configure Expo token
+      env:
+        EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+      run: |
+        echo "EXPO_TOKEN=$EXPO_TOKEN" >> $GITHUB_ENV
 
-      - name: Start EAS build
-        run: eas build --platform android --profile production --non-interactive --no-wait
+    - name: Start EAS build
+      env:
+        EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+      run: |
+        eas whoami
+        eas build -p android --profile production --non-interactive --json > /tmp/eas_build_output.json
+        jq -r '.id' /tmp/eas_build_output.json > /tmp/build_id.txt
+        BUILD_ID=$(cat /tmp/build_id.txt)
+        echo "BUILD_ID=$BUILD_ID"
+        eas build:download --platform android --id $BUILD_ID --output latest.aab
 
-      - name: Decode Play Service JSON
-        run: |
-          echo '${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}' > play-service.json
-          mkdir -p android/fastlane
-          mv play-service.json android/fastlane/play-service.json
+    - name: Decode Play Service JSON
+      run: |
+        echo "${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}" > android/fastlane/play-service.json
+        chmod 600 android/fastlane/play-service.json
 
-      - name: Deploy to Internal
-        run: bundle exec fastlane android internal
+    - name: Deploy to Internal
+      run: |
+        cd android
+        fastlane internal
 
-      - name: Promote to production (10%)
-        run: bundle exec fastlane android production
+    - name: Promote to production (10%)
+      run: |
+        cd android
+        fastlane promote_production
