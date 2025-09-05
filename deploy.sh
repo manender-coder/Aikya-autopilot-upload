@@ -15,9 +15,9 @@ git push -u origin main --force
 
 # 3. Trigger Workflow
 echo "⚡ Triggering GitHub Actions workflow..."
-gh workflow run play-autopilot.yml --repo manender-coder/aikya-autopilot-upload
+gh workflow run "Aikya Autopilot Build & Deploy" --repo manender-coder/aikya-autopilot-upload
 
 # 4. Attach to live logs
-LATEST_RUN=$(gh run list --workflow="play-autopilot.yml" --limit 1 --json databaseId --jq '.[0].databaseId' --repo manender-coder/aikya-autopilot-upload)
+LATEST_RUN=$(gh run list --workflow="Aikya Autopilot Build & Deploy" --limit 1 --json databaseId --jq '.[0].databaseId' --repo manender-coder/aikya-autopilot-upload)
 echo "📍 Watching live logs for run ID: $LATEST_RUN"
 gh run watch $LATEST_RUN --repo manender-coder/aikya-autopilot-upload
