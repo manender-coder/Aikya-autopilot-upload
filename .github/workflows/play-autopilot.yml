@@ -1,19 +1,13 @@
-- name: Start EAS build
-      env:
-        EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      run: |
-        git config --global url."https://x-access-token:${GITHUB_TOKEN}@github.com/".insteadOf "https://github.com/"
-        eas whoami
-        eas build -p android --profile production --non-interactive --json > /tmp/eas_build_output.json
-        jq -r '.id' /tmp/eas_build_output.json > /tmp/build_id.txt
-        BUILD_ID=$(cat /tmp/build_id.txt)
-        echo "BUILD_ID=$BUILD_ID"
-        for i in {1..60}; do
-          status=$(eas build:list --platform android --limit 1 --json | jq -r '.[0].status' || echo unknown)
-          echo "status: $status"
-          if [ "$status" = "finished" ]; then break; fi
-          if [ "$status" = "errored" ]; then exit 1; fi
-          sleep 30
-        done
-        eas build:download --platform android --id $BUILD_ID --output latest.aab
+- name: Deploy to Google Play (Internal Track)
+        run: |
+          export FASTLANE_DISABLE_COLORS=1
+          export SUPPLY_SKIP_GIT=true
+          fastlane supply \
+            --aab ./build/*.aab \
+            --track internal \
+            --json_key_data "${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}" \
+            --package_name "${{ secrets.ANDROID_PACKAGE_NAME }}" \
+            --skip_upload_metadata true \
+            --skip_upload_changelogs true \
+            --skip_upload_images true \
+            --skip_upload_screenshots true
