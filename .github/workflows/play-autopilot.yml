@@ -9,100 +9,62 @@ on:
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
-    timeout-minutes: 150
+    timeout-minutes: 120
 
     steps:
-      - name: Checkout repository (full history)
+      - name: Checkout repository
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Ensure git config (non-interactive)
-        run: |
-          git config user.email "ci@aikya.local"
-          git config user.name "Aikya CI"
-          git config --global core.askPass /bin/true
-          git remote -v || true
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
 
-      - name: Setup Node + jq + eas
-        run: |
-          sudo apt-get update -y
-          sudo apt-get install -y jq
-          curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
-          sudo apt-get install -y nodejs
-          npm install -g eas-cli@latest
+      - name: Install EAS CLI
+        run: npm install -g eas-cli@latest
 
       - name: Configure Expo token
         run: echo "EXPO_TOKEN=${{ secrets.EXPO_TOKEN }}" >> $GITHUB_ENV
 
-      - name: Check expo auth (debug)
+      - name: Start Expo Cloud Build (Android)
         env:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
         run: |
-          set -eux
-          eas whoami || (echo "EAS whoami failed — EXPO_TOKEN invalid" && exit 2)
-          eas --version
-          node -v && npm -v
-
-      - name: Start Expo Cloud Build (Android) and capture JSON
-        env:
-          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
-          GIT_TERMINAL_PROMPT: 0
-        run: |
-          set -eux
-          echo "Starting EAS build (cloud) — this will wait for completion..."
-          # use --wait --json to get result into file
-          eas build --platform android --profile production --non-interactive --wait --json > /tmp/eas_build.json || (echo "EAS build step failed. Dumping /tmp/eas_build.json:"; cat /tmp/eas_build.json || true; exit 3)
-          echo "EAS build JSON:"
-          jq . /tmp/eas_build.json
-
-      - name: Read build id & verify status
-        run: |
-          set -eux
-          jq -r '.id' /tmp/eas_build.json > /tmp/eas_build_id.txt
-          jq -r '.status' /tmp/eas_build.json > /tmp/eas_build_status.txt
-          echo "BUILD_ID=$(cat /tmp/eas_build_id.txt)"
-          echo "STATUS=$(cat /tmp/eas_build_status.txt)"
-          if [ "$(cat /tmp/eas_build_status.txt)" != "finished" ]; then
-            echo "EAS build did not finish successfully. See /tmp/eas_build.json"
-            exit 4
-          fi
+          eas build --platform android --non-interactive --profile production --wait --json > /tmp/eas_build.json
+          cat /tmp/eas_build.json | jq .
 
       - name: Download AAB artifact
         run: |
-          set -eux
-          BUILD_ID=$(cat /tmp/eas_build_id.txt)
-          echo "Downloading AAB for build id $BUILD_ID"
-          # primary command
-          if ! eas build:download --platform android --id "$BUILD_ID" --output ./app-release.aab; then
-            echo "primary download failed — trying alternate syntax..."
-            eas build:download --platform android --path ./app-release.aab --id "$BUILD_ID"
-          fi
-          ls -lh ./app-release.aab || (echo "AAB not found after download" && exit 5)
+          BUILD_ID=$(jq -r '.id' /tmp/eas_build.json)
+          echo "Downloading build $BUILD_ID"
+          eas build:download --platform android --id "$BUILD_ID" --output ./app-release.aab
+          ls -lh ./app-release.aab
 
       - name: Install Ruby & fastlane
         run: |
+          sudo apt-get update -y
           sudo apt-get install -y ruby-full build-essential
           gem install fastlane -NV
 
-      - name: Decode Play Store JSON key (from secret)
+      - name: Decode Play Store JSON key
         run: |
           echo "${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}" > /tmp/play_key.json
           chmod 600 /tmp/play_key.json
-          echo "Play key written to /tmp/play_key.json (first 3 lines):"
           head -n 3 /tmp/play_key.json
 
-      - name: Deploy to Google Play (Internal Track) via fastlane supply
+      - name: Deploy & Promote to 50% Production
         env:
           ANDROID_PACKAGE_NAME: ${{ secrets.ANDROID_PACKAGE_NAME }}
         run: |
-          set -eux
           export FASTLANE_DISABLE_COLORS=1
           export SUPPLY_SKIP_GIT=true
           fastlane supply \
             --aab ./app-release.aab \
-            --track internal \
+            --track production \
+            --release_status completed \
+            --user_fraction 0.5 \
             --json_key /tmp/play_key.json \
             --package_name "${ANDROID_PACKAGE_NAME}" \
             --skip_upload_metadata true \
