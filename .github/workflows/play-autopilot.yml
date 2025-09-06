@@ -27,10 +27,14 @@ jobs:
       - name: Configure Expo token
         run: echo "EXPO_TOKEN=${{ secrets.EXPO_TOKEN }}" >> $GITHUB_ENV
 
-      - name: Build Android AAB (Expo Cloud)
+      - name: Start Expo Cloud Build (Android)
         run: |
           export GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }}
-          eas build --platform android --non-interactive --profile production --output ./app-release.aab
+          eas build --platform android --non-interactive --profile production --wait
+
+      - name: Download AAB artifact
+        run: |
+          eas build:download --platform android --path ./app-release.aab
 
       - name: Decode Play Store JSON key
         run: echo '${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}' > /tmp/play_key.json
