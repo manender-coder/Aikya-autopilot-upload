@@ -1,11 +1,56 @@
-- name: Deploy to Google Play (Internal Track)
+name: Aikya Autopilot Build & Deploy
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - name: Install EAS CLI
+        run: npm install -g eas-cli
+
+      - name: Setup Ruby (Fastlane needs Ruby)
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: 3.2
+
+      - name: Install fastlane
+        run: sudo gem install fastlane -NV
+
+      - name: Configure Expo token
+        run: echo "EXPO_TOKEN=${{ secrets.EXPO_TOKEN }}" >> $GITHUB_ENV
+
+      - name: Start EAS build
+        run: |
+          export GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }}
+          eas build --platform android --non-interactive --profile production --local --output ./app-release.aab
+
+      - name: Decode Play Store JSON key
+        run: echo '${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}' > /tmp/play_key.json
+
+      - name: Deploy to Google Play (Internal Track)
         run: |
           export FASTLANE_DISABLE_COLORS=1
           export SUPPLY_SKIP_GIT=true
           fastlane supply \
-            --aab ./build/*.aab \
+            --aab ./app-release.aab \
             --track internal \
-            --json_key_data "${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}" \
+            --json_key /tmp/play_key.json \
             --package_name "${{ secrets.ANDROID_PACKAGE_NAME }}" \
             --skip_upload_metadata true \
             --skip_upload_changelogs true \
