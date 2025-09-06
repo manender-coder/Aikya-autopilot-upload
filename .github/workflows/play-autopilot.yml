@@ -9,8 +9,6 @@ on:
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
-    timeout-minutes: 120
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -22,8 +20,12 @@ jobs:
         with:
           node-version: 18
 
-      - name: Install EAS CLI
-        run: npm install -g eas-cli@latest
+      - name: Install dependencies (jq + eas)
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y jq ruby-full build-essential
+          npm install -g eas-cli@latest
+          gem install fastlane -NV
 
       - name: Configure Expo token
         run: echo "EXPO_TOKEN=${{ secrets.EXPO_TOKEN }}" >> $GITHUB_ENV
@@ -33,28 +35,18 @@ jobs:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
         run: |
           eas build --platform android --non-interactive --profile production --wait --json > /tmp/eas_build.json
-          cat /tmp/eas_build.json | jq .
+          jq . /tmp/eas_build.json
 
       - name: Download AAB artifact
         run: |
           BUILD_ID=$(jq -r '.id' /tmp/eas_build.json)
-          echo "Downloading build $BUILD_ID"
           eas build:download --platform android --id "$BUILD_ID" --output ./app-release.aab
           ls -lh ./app-release.aab
 
-      - name: Install Ruby & fastlane
-        run: |
-          sudo apt-get update -y
-          sudo apt-get install -y ruby-full build-essential
-          gem install fastlane -NV
-
       - name: Decode Play Store JSON key
-        run: |
-          echo "${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}" > /tmp/play_key.json
-          chmod 600 /tmp/play_key.json
-          head -n 3 /tmp/play_key.json
+        run: echo '${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}' > /tmp/play_key.json
 
-      - name: Deploy & Promote to 50% Production
+      - name: Deploy to Google Play (50% rollout)
         env:
           ANDROID_PACKAGE_NAME: ${{ secrets.ANDROID_PACKAGE_NAME }}
         run: |
@@ -63,8 +55,33 @@ jobs:
           fastlane supply \
             --aab ./app-release.aab \
             --track production \
-            --release_status completed \
-            --user_fraction 0.5 \
+            --rollout 0.5 \
+            --json_key /tmp/play_key.json \
+            --package_name "${ANDROID_PACKAGE_NAME}" \
+            --skip_upload_metadata true \
+            --skip_upload_changelogs true \
+            --skip_upload_images true \
+            --skip_upload_screenshots true
+
+  promote-to-100:
+    runs-on: ubuntu-latest
+    needs: build-and-deploy
+    steps:
+      - name: Wait 24h before full rollout
+        run: sleep 86400  # 24 hours
+
+      - name: Decode Play Store JSON key
+        run: echo '${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}' > /tmp/play_key.json
+
+      - name: Promote to 100% Production
+        env:
+          ANDROID_PACKAGE_NAME: ${{ secrets.ANDROID_PACKAGE_NAME }}
+        run: |
+          export FASTLANE_DISABLE_COLORS=1
+          export SUPPLY_SKIP_GIT=true
+          fastlane supply \
+            --track production \
+            --rollout 1.0 \
             --json_key /tmp/play_key.json \
             --package_name "${ANDROID_PACKAGE_NAME}" \
             --skip_upload_metadata true \
