@@ -24,30 +24,13 @@ jobs:
       - name: Install EAS CLI
         run: npm install -g eas-cli
 
-      - name: Setup Java
-        uses: actions/setup-java@v3
-        with:
-          distribution: "temurin"
-          java-version: "17"
-
-      - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
-
-      - name: Setup Ruby (Fastlane needs Ruby)
-        uses: ruby/setup-ruby@v1
-        with:
-          ruby-version: 3.2
-
-      - name: Install fastlane
-        run: sudo gem install fastlane -NV
-
       - name: Configure Expo token
         run: echo "EXPO_TOKEN=${{ secrets.EXPO_TOKEN }}" >> $GITHUB_ENV
 
-      - name: Build Android AAB (Local CI Mode)
+      - name: Build Android AAB (Expo Cloud)
         run: |
           export GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }}
-          eas build --platform android --non-interactive --profile production --local --output ./app-release.aab
+          eas build --platform android --non-interactive --profile production --output ./app-release.aab
 
       - name: Decode Play Store JSON key
         run: echo '${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}' > /tmp/play_key.json
