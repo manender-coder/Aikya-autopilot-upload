@@ -9,23 +9,28 @@ on:
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
-    timeout-minutes: 120
+    timeout-minutes: 150
 
     steps:
-      - name: Checkout repository
+      - name: Checkout repository (full history)
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Setup Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: 18
+      - name: Ensure git config (non-interactive)
+        run: |
+          git config user.email "ci@aikya.local"
+          git config user.name "Aikya CI"
+          git config --global core.askPass /bin/true
+          git remote -v || true
 
-      - name: Install dependencies (jq + eas)
+      - name: Setup Node + jq + eas
         run: |
           sudo apt-get update -y
           sudo apt-get install -y jq
+          curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
+          sudo apt-get install -y nodejs
           npm install -g eas-cli@latest
 
       - name: Configure Expo token
@@ -35,23 +40,26 @@ jobs:
         env:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
         run: |
-          echo ">>> whoami (expo/eas)"
-          eas whoami || (echo "EAS whoami failed — check EXPO_TOKEN" && exit 2)
+          set -eux
+          eas whoami || (echo "EAS whoami failed — EXPO_TOKEN invalid" && exit 2)
           eas --version
           node -v && npm -v
 
       - name: Start Expo Cloud Build (Android) and capture JSON
         env:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+          GIT_TERMINAL_PROMPT: 0
         run: |
           set -eux
-          echo "Starting EAS build (cloud)..."
-          eas build --platform android --non-interactive --profile production --wait --json > /tmp/eas_build.json || (cat /tmp/eas_build.json || true; echo "EAS build failed"; exit 3)
-          cat /tmp/eas_build.json
+          echo "Starting EAS build (cloud) — this will wait for completion..."
+          # use --wait --json to get result into file
+          eas build --platform android --profile production --non-interactive --wait --json > /tmp/eas_build.json || (echo "EAS build step failed. Dumping /tmp/eas_build.json:"; cat /tmp/eas_build.json || true; exit 3)
+          echo "EAS build JSON:"
           jq . /tmp/eas_build.json
 
-      - name: Read build id & status (debug)
+      - name: Read build id & verify status
         run: |
+          set -eux
           jq -r '.id' /tmp/eas_build.json > /tmp/eas_build_id.txt
           jq -r '.status' /tmp/eas_build.json > /tmp/eas_build_status.txt
           echo "BUILD_ID=$(cat /tmp/eas_build_id.txt)"
@@ -63,14 +71,15 @@ jobs:
 
       - name: Download AAB artifact
         run: |
+          set -eux
           BUILD_ID=$(cat /tmp/eas_build_id.txt)
           echo "Downloading AAB for build id $BUILD_ID"
-          # two possible CLI syntaxes supported: try both if needed
+          # primary command
           if ! eas build:download --platform android --id "$BUILD_ID" --output ./app-release.aab; then
-            echo "first download command failed, trying alternate flag ordering..."
+            echo "primary download failed — trying alternate syntax..."
             eas build:download --platform android --path ./app-release.aab --id "$BUILD_ID"
           fi
-          ls -lh ./app-release.aab || (echo "AAB not found"; exit 5)
+          ls -lh ./app-release.aab || (echo "AAB not found after download" && exit 5)
 
       - name: Install Ruby & fastlane
         run: |
@@ -81,7 +90,7 @@ jobs:
         run: |
           echo "${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}" > /tmp/play_key.json
           chmod 600 /tmp/play_key.json
-          echo "Wrote play key to /tmp/play_key.json (first 3 lines):"
+          echo "Play key written to /tmp/play_key.json (first 3 lines):"
           head -n 3 /tmp/play_key.json
 
       - name: Deploy to Google Play (Internal Track) via fastlane supply
@@ -91,7 +100,6 @@ jobs:
           set -eux
           export FASTLANE_DISABLE_COLORS=1
           export SUPPLY_SKIP_GIT=true
-          # Run supply (fastlane) to upload the AAB
           fastlane supply \
             --aab ./app-release.aab \
             --track internal \
