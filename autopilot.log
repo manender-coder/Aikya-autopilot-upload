@@ -1,0 +1,205 @@
+===== Autopilot Cycle Started at 2025-09-06 13:16:34 =====
+No mirror or mirror group selected. You might want to select one by running 'termux-change-repo'
+Checking availability of current mirror:
+[*] https://mirrors.middlendian.com/termux/termux-main: ok
+
+WARNING: apt does not have a stable CLI interface. Use with caution in scripts.
+
+Hit:1 https://mirrors.middlendian.com/termux/termux-main stable InRelease
+Reading package lists...
+Building dependency tree...
+Reading state information...
+All packages are up to date.
+No mirror or mirror group selected. You might want to select one by running 'termux-change-repo'
+Checking availability of current mirror:
+[*] https://mirrors.middlendian.com/termux/termux-main: ok
+
+WARNING: apt does not have a stable CLI interface. Use with caution in scripts.
+
+Hit:1 https://mirrors.middlendian.com/termux/termux-main stable InRelease
+Reading package lists...
+Building dependency tree...
+Reading state information...
+All packages are up to date.
+
+WARNING: apt does not have a stable CLI interface. Use with caution in scripts.
+
+Reading package lists...
+Building dependency tree...
+Reading state information...
+Calculating upgrade...
+0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.
+
+=== Deploying to 'aikya-autopilot'...
+
+i  deploying storage, firestore, dataconnect
+i  storage: ensuring required API firebasestorage.googleapis.com is enabled...
+i  firebase.storage: checking storage.rules for compilation errors...
+✔  firebase.storage: rules file storage.rules compiled successfully
+i  cloud.firestore: checking firestore.rules for compilation errors...
+✔  cloud.firestore: rules file firestore.rules compiled successfully
+i  dataconnect: ensuring required API firebasedataconnect.googleapis.com is enabled...
+i  dataconnect: ensuring required API sqladmin.googleapis.com is enabled...
+
+Error: Failed to read file "dataconnect.yaml" in "/data/data/com.termux/files/home/myApp/dataconnect/schema/schema.gql"
+⚠️ Firebase deploy failed, retrying...
+
+=== Deploying to 'aikya-autopilot'...
+
+i  deploying storage, firestore, dataconnect
+i  storage: ensuring required API firebasestorage.googleapis.com is enabled...
+i  firebase.storage: checking storage.rules for compilation errors...
+✔  firebase.storage: rules file storage.rules compiled successfully
+i  cloud.firestore: checking firestore.rules for compilation errors...
+✔  cloud.firestore: rules file firestore.rules compiled successfully
+i  dataconnect: ensuring required API firebasedataconnect.googleapis.com is enabled...
+i  dataconnect: ensuring required API sqladmin.googleapis.com is enabled...
+
+Error: Failed to read file "dataconnect.yaml" in "/data/data/com.termux/files/home/myApp/dataconnect/schema/schema.gql"
+Failed to read the app config from the project using "npx expo config" command: npx expo config --json exited with non-zero code: 1.
+Falling back to the version of "@expo/config" shipped with the EAS CLI.
+Resolved "production" environment for the build. Learn more: https://docs.expo.dev/eas/environment-variables/#setting-the-environment-for-your-builds
+No environment variables with visibility "Plain text" and "Sensitive" found for the "production" environment on EAS.
+
+- Incrementing versionCode from 15 to 16.
+✔ Incremented versionCode from 15 to 16.
+Cannot find module 'is-arrayish'
+Require stack:
+- /data/data/com.termux/files/home/myApp/node_modules/error-ex/index.js
+- /data/data/com.termux/files/home/myApp/node_modules/parse-json/index.js
+- /data/data/com.termux/files/home/myApp/node_modules/cosmiconfig/dist/loaders.js
+- /data/data/com.termux/files/home/myApp/node_modules/cosmiconfig/dist/createExplorer.js
+- /data/data/com.termux/files/home/myApp/node_modules/cosmiconfig/dist/index.js
+- /data/data/com.termux/files/home/myApp/node_modules/metro-config/src/loadConfig.js
+- /data/data/com.termux/files/home/myApp/node_modules/metro-config/src/index.js
+- /data/data/com.termux/files/usr/lib/node_modules/eas-cli/build/project/metroConfig.js
+- /data/data/com.termux/files/usr/lib/node_modules/eas-cli/build/build/runBuildAndSubmit.js
+- /data/data/com.termux/files/usr/lib/node_modules/eas-cli/build/commands/build/index.js
+- /data/data/com.termux/files/usr/lib/node_modules/eas-cli/node_modules/@oclif/core/lib/module-loader.js
+- /data/data/com.termux/files/usr/lib/node_modules/eas-cli/node_modules/@oclif/core/lib/config/plugin.js
+- /data/data/com.termux/files/usr/lib/node_modules/eas-cli/node_modules/@oclif/core/lib/config/config.js
+- /data/data/com.termux/files/usr/lib/node_modules/eas-cli/node_modules/@oclif/core/lib/config/index.js
+- /data/data/com.termux/files/usr/lib/node_modules/eas-cli/node_modules/@oclif/core/lib/command.js
+- /data/data/com.termux/files/usr/lib/node_modules/eas-cli/node_modules/@oclif/core/lib/index.js
+- /data/data/com.termux/files/usr/lib/node_modules/eas-cli/bin/run
+    Error: build command failed.
+⚠️ EAS build failed, retrying...
+===== Autopilot Cycle Start at 2025-09-06 13:17:59 =====
+
+=== Deploying to 'aikya-autopilot'...
+
+i  deploying storage, firestore, dataconnect
+i  storage: ensuring required API firebasestorage.googleapis.com is enabled...
+i  firebase.storage: checking storage.rules for compilation errors...
+Failed to read the app config from the project using "npx expo config" command: npx expo config --json exited with non-zero code: 1.
+Falling back to the version of "@expo/config" shipped with the EAS CLI.
+✔  firebase.storage: rules file storage.rules compiled successfully
+i  cloud.firestore: checking firestore.rules for compilation errors...
+✔  cloud.firestore: rules file firestore.rules compiled successfully
+Resolved "production" environment for the build. Learn more: https://docs.expo.dev/eas/environment-variables/#setting-the-environment-for-your-builds
+No environment variables with visibility "Plain text" and "Sensitive" found for the "production" environment on EAS.
+
+i  dataconnect: ensuring required API firebasedataconnect.googleapis.com is enabled...
+i  dataconnect: ensuring required API sqladmin.googleapis.com is enabled...
+
+Error: Failed to read file "dataconnect.yaml" in "/data/data/com.termux/files/home/myApp/dataconnect/schema/schema.gql"
+- Incrementing versionCode from 16 to 17.
+Failed to read the app config from the project using "npx expo config" command: npx expo config --json exited with non-zero code: 1.
+Falling back to the version of "@expo/config" shipped with the EAS CLI.
+✔ Incremented versionCode from 16 to 17.
+Cannot find module 'is-arrayish'
+Require stack:
+- /data/data/com.termux/files/home/myApp/node_modules/error-ex/index.js
+- /data/data/com.termux/files/home/myApp/node_modules/parse-json/index.js
+- /data/data/com.termux/files/home/myApp/node_modules/cosmiconfig/dist/loaders.js
+- /data/data/com.termux/files/home/myApp/node_modules/cosmiconfig/dist/createExplorer.js
+- /data/data/com.termux/files/home/myApp/node_modules/cosmiconfig/dist/index.js
+- /data/data/com.termux/files/home/myApp/node_modules/metro-config/src/loadConfig.js
+- /data/data/com.termux/files/home/myApp/node_modules/metro-config/src/index.js
+- /data/data/com.termux/files/usr/lib/node_modules/eas-cli/build/project/metroConfig.js
+- /data/data/com.termux/files/usr/lib/node_modules/eas-cli/build/build/runBuildAndSubmit.js
+- /data/data/com.termux/files/usr/lib/node_modules/eas-cli/build/commands/build/index.js
+- /data/data/com.termux/files/usr/lib/node_modules/eas-cli/node_modules/@oclif/core/lib/module-loader.js
+- /data/data/com.termux/files/usr/lib/node_modules/eas-cli/node_modules/@oclif/core/lib/config/plugin.js
+- /data/data/com.termux/files/usr/lib/node_modules/eas-cli/node_modules/@oclif/core/lib/config/config.js
+- /data/data/com.termux/files/usr/lib/node_modules/eas-cli/node_modules/@oclif/core/lib/config/index.js
+- /data/data/com.termux/files/usr/lib/node_modules/eas-cli/node_modules/@oclif/core/lib/command.js
+- /data/data/com.termux/files/usr/lib/node_modules/eas-cli/node_modules/@oclif/core/lib/index.js
+- /data/data/com.termux/files/usr/lib/node_modules/eas-cli/bin/run
+    Error: build command failed.
+===== Autopilot Cycle Complete at 2025-09-06 13:16:34 =====
+Resolved "production" environment for the build. Learn more: https://docs.expo.dev/eas/environment-variables/#setting-the-environment-for-your-builds
+No environment variables with visibility "Plain text" and "Sensitive" found for the "production" environment on EAS.
+
+- Incrementing versionCode from 17 to 18.
+✔ Incremented versionCode from 17 to 18.
+Cannot find module 'is-arrayish'
+Require stack:
+- /data/data/com.termux/files/home/myApp/node_modules/error-ex/index.js
+- /data/data/com.termux/files/home/myApp/node_modules/parse-json/index.js
+- /data/data/com.termux/files/home/myApp/node_modules/cosmiconfig/dist/loaders.js
+- /data/data/com.termux/files/home/myApp/node_modules/cosmiconfig/dist/createExplorer.js
+- /data/data/com.termux/files/home/myApp/node_modules/cosmiconfig/dist/index.js
+- /data/data/com.termux/files/home/myApp/node_modules/metro-config/src/loadConfig.js
+- /data/data/com.termux/files/home/myApp/node_modules/metro-config/src/index.js
+- /data/data/com.termux/files/usr/lib/node_modules/eas-cli/build/project/metroConfig.js
+- /data/data/com.termux/files/usr/lib/node_modules/eas-cli/build/build/runBuildAndSubmit.js
+- /data/data/com.termux/files/usr/lib/node_modules/eas-cli/build/commands/build/index.js
+- /data/data/com.termux/files/usr/lib/node_modules/eas-cli/node_modules/@oclif/core/lib/module-loader.js
+- /data/data/com.termux/files/usr/lib/node_modules/eas-cli/node_modules/@oclif/core/lib/config/plugin.js
+- /data/data/com.termux/files/usr/lib/node_modules/eas-cli/node_modules/@oclif/core/lib/config/config.js
+- /data/data/com.termux/files/usr/lib/node_modules/eas-cli/node_modules/@oclif/core/lib/config/index.js
+- /data/data/com.termux/files/usr/lib/node_modules/eas-cli/node_modules/@oclif/core/lib/command.js
+- /data/data/com.termux/files/usr/lib/node_modules/eas-cli/node_modules/@oclif/core/lib/index.js
+- /data/data/com.termux/files/usr/lib/node_modules/eas-cli/bin/run
+    Error: build command failed.
+⚠️ Error detected at 2025-09-06 13:17:59. Retrying in 10 minutes...
+===== Autopilot Cycle Start at 2025-09-06 13:28:41 =====
+
+=== Deploying to 'aikya-autopilot'...
+
+i  deploying storage, firestore, dataconnect
+i  storage: ensuring required API firebasestorage.googleapis.com is enabled...
+i  firebase.storage: checking storage.rules for compilation errors...
+✔  firebase.storage: rules file storage.rules compiled successfully
+i  cloud.firestore: checking firestore.rules for compilation errors...
+✔  cloud.firestore: rules file firestore.rules compiled successfully
+i  dataconnect: ensuring required API firebasedataconnect.googleapis.com is enabled...
+i  dataconnect: ensuring required API sqladmin.googleapis.com is enabled...
+
+Error: Failed to read file "dataconnect.yaml" in "/data/data/com.termux/files/home/myApp/dataconnect/schema/schema.gql"
+Failed to read the app config from the project using "npx expo config" command: npx expo config --json exited with non-zero code: 1.
+Falling back to the version of "@expo/config" shipped with the EAS CLI.
+Resolved "production" environment for the build. Learn more: https://docs.expo.dev/eas/environment-variables/#setting-the-environment-for-your-builds
+No environment variables with visibility "Plain text" and "Sensitive" found for the "production" environment on EAS.
+
+- Incrementing versionCode from 18 to 19.
+✔ Incremented versionCode from 18 to 19.
+Cannot find module 'is-arrayish'
+Require stack:
+- /data/data/com.termux/files/home/myApp/node_modules/error-ex/index.js
+- /data/data/com.termux/files/home/myApp/node_modules/parse-json/index.js
+- /data/data/com.termux/files/home/myApp/node_modules/cosmiconfig/dist/loaders.js
+- /data/data/com.termux/files/home/myApp/node_modules/cosmiconfig/dist/createExplorer.js
+- /data/data/com.termux/files/home/myApp/node_modules/cosmiconfig/dist/index.js
+- /data/data/com.termux/files/home/myApp/node_modules/metro-config/src/loadConfig.js
+- /data/data/com.termux/files/home/myApp/node_modules/metro-config/src/index.js
+- /data/data/com.termux/files/usr/lib/node_modules/eas-cli/build/project/metroConfig.js
+- /data/data/com.termux/files/usr/lib/node_modules/eas-cli/build/build/runBuildAndSubmit.js
+- /data/data/com.termux/files/usr/lib/node_modules/eas-cli/build/commands/build/index.js
+- /data/data/com.termux/files/usr/lib/node_modules/eas-cli/node_modules/@oclif/core/lib/module-loader.js
+- /data/data/com.termux/files/usr/lib/node_modules/eas-cli/node_modules/@oclif/core/lib/config/plugin.js
+- /data/data/com.termux/files/usr/lib/node_modules/eas-cli/node_modules/@oclif/core/lib/config/config.js
+- /data/data/com.termux/files/usr/lib/node_modules/eas-cli/node_modules/@oclif/core/lib/config/index.js
+- /data/data/com.termux/files/usr/lib/node_modules/eas-cli/node_modules/@oclif/core/lib/command.js
+- /data/data/com.termux/files/usr/lib/node_modules/eas-cli/node_modules/@oclif/core/lib/index.js
+- /data/data/com.termux/files/usr/lib/node_modules/eas-cli/bin/run
+    Error: build command failed.
+⚠️ Error detected at 2025-09-06 13:28:41. Retrying in 10 minutes...
+nohup: ignoring input
+===== Autopilot Cycle Start at 2025-09-06 13:39:39 =====
+bash: line 56: 19135 Hangup                     npm install >> $LOG_FILE 2>&1
+libc: Access denied finding property "persist.vendor.track.malloc.enable"
+libc: Access denied finding property "persist.vendor.fd.monitor.enable"
+libc: Access denied finding property "persist.vendor.track.malloc.enable"
+libc: Access denied finding property "persist.vendor.fd.monitor.enable"

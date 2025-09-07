@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "599962960149",
+    "project_id": "aikya-autopilot",
+    "storage_bucket": "aikya-autopilot.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:599962960149:android:a36a99b15cdaf107c6e91c",
+        "android_client_info": {
+          "package_name": "com.aikya.spritual.platform"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDPj1f-YTvMF53o5KZKLPKBgEtfcGhVYL4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

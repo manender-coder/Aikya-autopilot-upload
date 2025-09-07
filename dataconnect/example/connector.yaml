@@ -1,0 +1,16 @@
+connectorId: example
+generate:
+  javascriptSdk:
+    - outputDir: ../../src/dataconnect-generated
+      package: "@dataconnect/generated"
+      packageJsonDir: ../..
+      react: true
+      angular: false
+    - outputDir: ../../android/Aikya-autopilot-upload/src/dataconnect-generated
+      package: "@dataconnect/generated"
+      packageJsonDir: ../../android/Aikya-autopilot-upload
+      react: true
+      angular: false
+  kotlinSdk:
+    - outputDir: ../../app/src/main/kotlin
+      package: com.google.firebase.dataconnect.generated
