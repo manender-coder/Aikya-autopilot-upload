@@ -1,0 +1,75 @@
+name: Aikya Eternal Autopilot Deploy
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    env:
+      PROJECT_ID: aikya-spritual
+      REGION: asia-east1
+      SERVICE_NAME: aikya
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20'
+
+      - name: Authenticate with Google Cloud
+        uses: google-github-actions/auth@v1
+        with:
+          credentials_json: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+
+      - name: Configure Docker for GCP
+        run: gcloud auth configure-docker
+
+      - name: Build Docker image
+        run: |
+          docker build -t gcr.io/$PROJECT_ID/$SERVICE_NAME:latest .
+
+      - name: Push Docker image to Google Container Registry
+        run: |
+          docker push gcr.io/$PROJECT_ID/$SERVICE_NAME:latest
+
+      - name: Deploy to Cloud Run
+        run: |
+          gcloud run deploy $SERVICE_NAME \
+            --image gcr.io/$PROJECT_ID/$SERVICE_NAME:latest \
+            --platform managed \
+            --region $REGION \
+            --allow-unauthenticated \
+            --port 8080
+
+      - name: Check Cloud Run Logs for errors
+        run: |
+          ERROR_COUNT=$(gcloud logs read "resource.type=cloud_run_revision AND resource.labels.service_name=$SERVICE_NAME AND severity>=ERROR" \
+          --limit 10 \
+          --format="value(textPayload)" | wc -l)
+          if [ $ERROR_COUNT -gt 0 ]; then
+            echo "❌ Cloud Run reported $ERROR_COUNT error(s) in the last 10 logs. Failing workflow."
+            exit 1
+          else
+            echo "✅ No recent Cloud Run errors detected."
+          fi
+
+      - name: Install Firebase CLI
+        run: npm install -g firebase-tools
+
+      - name: Deploy to Firebase Hosting
+        run: |
+          echo "${{ secrets.FIREBASE_SERVICE_ACCOUNT }}" > /tmp/service-account.json
+          firebase login:ci --no-localhost
+          firebase use --add $PROJECT_ID
+          firebase deploy --only hosting --project $PROJECT_ID --token "$(cat /tmp/service-account.json)"
+
+      - name: Show Firebase Hosting URL
+        run: |
+          echo "✅ Firebase Hosting URL: https://aikya--$PROJECT_ID.asia-east1.hosted.app/"
