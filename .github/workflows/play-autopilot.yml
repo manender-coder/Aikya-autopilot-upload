@@ -6,64 +6,59 @@ on:
       - main
   workflow_dispatch:
 
+permissions:
+  contents: write
+  id-token: write
+
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
-    timeout-minutes: 120
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: 18
 
-      - name: Install dependencies
-        run: |
-          sudo apt-get update -y
-          sudo apt-get install -y jq
-          npm install -g eas-cli firebase-tools
+      - name: Install EAS CLI
+        run: npm install -g eas-cli
 
       - name: Configure Expo token
         run: echo "EXPO_TOKEN=${{ secrets.EXPO_TOKEN }}" >> $GITHUB_ENV
 
       - name: Start Expo Cloud Build (Android)
-        env:
-          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
         run: |
-          eas build --platform android --non-interactive --profile production --wait --json > /tmp/eas_build.json
-          cat /tmp/eas_build.json
-          jq -r '.id' /tmp/eas_build.json > /tmp/eas_build_id.txt
+          export GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }}
+          eas build --platform android --non-interactive --profile production --wait
 
       - name: Download AAB artifact
         run: |
-          BUILD_ID=$(cat /tmp/eas_build_id.txt)
-          eas build:download --platform android --id "$BUILD_ID" --output ./app-release.aab
-          ls -lh ./app-release.aab
+          eas build:download --platform android --path ./app-release.aab
 
-      - name: Setup Ruby & Fastlane
+      - name: Setup Ruby and Fastlane
         run: |
-          sudo apt-get install -y ruby-full build-essential
+          sudo apt-get update && sudo apt-get install -y ruby-full
           gem install fastlane -NV
 
       - name: Decode Play Store JSON key
         run: |
           echo "${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}" > /tmp/play_key.json
-          chmod 600 /tmp/play_key.json
 
       - name: Deploy to Google Play (Internal Track)
-        env:
-          ANDROID_PACKAGE_NAME: ${{ secrets.ANDROID_PACKAGE_NAME }}
         run: |
+          export FASTLANE_DISABLE_COLORS=1
+          export SUPPLY_SKIP_GIT=true
           fastlane supply \
             --aab ./app-release.aab \
             --track internal \
             --json_key /tmp/play_key.json \
-            --package_name "$ANDROID_PACKAGE_NAME" \
+            --package_name "${{ secrets.ANDROID_PACKAGE_NAME }}" \
             --skip_upload_metadata true \
             --skip_upload_changelogs true \
             --skip_upload_images true \
@@ -71,6 +66,6 @@ jobs:
 
       - name: Deploy to Firebase Hosting
         run: |
-          echo '${{ secrets.FIREBASE_PRIVATE_KEY }}' > /tmp/firebase-key.json
+          echo "${{ secrets.FIREBASE_PRIVATE_KEY }}" > /tmp/firebase-key.json
           firebase use --add aikya-spritual
           firebase deploy --non-interactive --only hosting --token "$(cat /tmp/firebase-key.json | jq -r .private_key_id)"
