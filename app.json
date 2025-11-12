@@ -1,0 +1,15 @@
+{
+  "expo": {
+    "extra": {
+      "eas": {
+        "projectId": "dda737f8-e837-4ff1-9c11-86119ae71501"
+      }
+    },
+    "android": {
+      "package": "com.manendercoder.aikya"
+    },
+    "ios": {
+      "bundleIdentifier": "com.manendercoder.aikya"
+    }
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "devDependencies": {
+    "eas-cli": "^16.26.0",
+    "expo-cli": "^6.3.12",
+    "firebase-tools": "^14.23.0",
+    "@babel/core": "^7.20.0"
+  },
+  "name": "aikya",
+  "version": "1.0.0",
+  "scripts": {
+    "android": "expo run:android",
+    "ios": "expo run:ios"
+  },
+  "dependencies": {
+    "expo": "~49.0.23",
+    "expo-splash-screen": "~0.20.5",
+    "expo-status-bar": "~1.6.0",
+    "react": "18.2.0",
+    "react-native": "0.72.10"
+  }
+}
