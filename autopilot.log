@@ -57,3 +57,115 @@ are terminated then try again. If it still fails, a git process
 may have crashed in this repository earlier:
 remove the file manually to continue.
 Everything up-to-date
+[main 7db7b6ad] ♾️ Auto Aikya Sync Wed Nov 12 18:00:11 IST 2025
+ 3 files changed, 113 insertions(+), 8 deletions(-)
+ create mode 100755 aikya-notify.sh
+remote: This repository moved. Please use the new location:        
+remote:   https://github.com/manender-coder/Aikya-autopilot-upload.git        
+To https://github.com/manender-coder/aikya-autopilot-upload.git
+   7ac242a7..7db7b6ad  main -> main
+
+=== Deploying to 'aikya-spritual'...
+
+i  deploying hosting
+
+=== Deploying to 'aikya-spritual'...
+
+i  deploying hosting
+i  hosting[aikya-spritual]: beginning deploy...
+i  hosting[aikya-spritual]: found 2 files in public
+i  hosting[aikya-spritual]: beginning deploy...
+i  hosting[aikya-spritual]: found 2 files in public
+i  hosting: upload complete
+✔  hosting[aikya-spritual]: file upload complete
+i  hosting[aikya-spritual]: finalizing version...
+i  hosting: upload complete
+✔  hosting[aikya-spritual]: file upload complete
+i  hosting[aikya-spritual]: finalizing version...
+✔  hosting[aikya-spritual]: version finalized
+i  hosting[aikya-spritual]: releasing new version...
+✔  hosting[aikya-spritual]: version finalized
+i  hosting[aikya-spritual]: releasing new version...
+✔  hosting[aikya-spritual]: release complete
+
+✔  Deploy complete!
+
+Project Console: https://console.firebase.google.com/project/aikya-spritual/overview
+Hosting URL: https://aikya-spritual.web.app
+✔  hosting[aikya-spritual]: release complete
+
+✔  Deploy complete!
+
+Project Console: https://console.firebase.google.com/project/aikya-spritual/overview
+Hosting URL: https://aikya-spritual.web.app
+eas.json is not valid.
+- "submit.production.serviceAccountKeyPath" is not allowed
+- "submit.production.track" is not allowed
+eas.json is not valid.
+- "submit.production.serviceAccountKeyPath" is not allowed
+- "submit.production.track" is not allowed
+    Error: build command failed.
+    Error: build command failed.
+⚠️ EAS build failed, retrying attempt 1...
+⚠️ EAS build failed, retrying attempt 1...
+eas.json is not valid.
+- "submit.production.serviceAccountKeyPath" is not allowed
+- "submit.production.track" is not allowed
+eas.json is not valid.
+- "submit.production.serviceAccountKeyPath" is not allowed
+- "submit.production.track" is not allowed
+    Error: build command failed.
+    Error: build command failed.
+⚠️ EAS build failed, retrying attempt 2...
+⚠️ EAS build failed, retrying attempt 2...
+eas.json is not valid.
+- "submit.production.serviceAccountKeyPath" is not allowed
+- "submit.production.track" is not allowed
+eas.json is not valid.
+- "submit.production.serviceAccountKeyPath" is not allowed
+- "submit.production.track" is not allowed
+    Error: build command failed.
+    Error: build command failed.
+⚠️ EAS build failed, retrying attempt 3...
+⚠️ EAS build failed, retrying attempt 3...
+Error: ENOENT: no such file or directory, stat '/data/data/com.termux/files/home/aikya/public'
+    at Object.statSync (node:fs:1725:25)
+    at Object.statSync (/data/data/com.termux/files/usr/lib/node_modules/gh-pages/node_modules/graceful-fs/polyfills.js:319:16)
+    at Object.publish (/data/data/com.termux/files/usr/lib/node_modules/gh-pages/lib/index.js:98:13)
+    at /data/data/com.termux/files/usr/lib/node_modules/gh-pages/bin/gh-pages.js:12:13
+    at new Promise (<anonymous>)
+    at publish (/data/data/com.termux/files/usr/lib/node_modules/gh-pages/bin/gh-pages.js:10:10)
+    at /data/data/com.termux/files/usr/lib/node_modules/gh-pages/bin/gh-pages.js:142:12
+Error: ENOENT: no such file or directory, stat '/data/data/com.termux/files/home/aikya/public'
+    at Object.statSync (node:fs:1725:25)
+    at Object.statSync (/data/data/com.termux/files/usr/lib/node_modules/gh-pages/node_modules/graceful-fs/polyfills.js:319:16)
+    at Object.publish (/data/data/com.termux/files/usr/lib/node_modules/gh-pages/lib/index.js:98:13)
+    at /data/data/com.termux/files/usr/lib/node_modules/gh-pages/bin/gh-pages.js:12:13
+    at new Promise (<anonymous>)
+    at publish (/data/data/com.termux/files/usr/lib/node_modules/gh-pages/bin/gh-pages.js:10:10)
+    at /data/data/com.termux/files/usr/lib/node_modules/gh-pages/bin/gh-pages.js:142:12
+sed: -e expression #1, char 6: unterminated `s' command
+sed: -e expression #1, char 6: unterminated `s' command
+ccuurrll::  ((33))  UURRLL  rreejjeecctteedd::  MMaallffoorrmmeedd  iinnppuutt  ttoo  aa  UURRLL  ffuunnccttiioonn
+
+----- ✅ Full Cycle Completed Wed Nov 12 18:02:25 IST 2025 -----
+----- ✅ Full Cycle Completed Wed Nov 12 18:02:25 IST 2025 -----
+----- 🌅 Thu Nov 13 00:00:00 IST 2025: Starting Eternal Aikya Autopilot -----
+----- 🌅 Thu Nov 13 00:00:00 IST 2025: Starting Eternal Aikya Autopilot -----
+fatal: unable to access 'https://github.com/manender-coder/aikya-autopilot-upload.git/': Could not resolve host: github.com
+fatal: unable to access 'https://github.com/manender-coder/aikya-autopilot-upload.git/': Could not resolve host: github.com
+fatal: Unable to create '/data/data/com.termux/files/home/aikya/.git/index.lock': File exists.
+
+Another git process seems to be running in this repository, e.g.
+an editor opened by 'git commit'. Please make sure all processes
+are terminated then try again. If it still fails, a git process
+may have crashed in this repository earlier:
+remove the file manually to continue.
+fatal: Unable to create '/data/data/com.termux/files/home/aikya/.git/index.lock': File exists.
+
+Another git process seems to be running in this repository, e.g.
+an editor opened by 'git commit'. Please make sure all processes
+are terminated then try again. If it still fails, a git process
+may have crashed in this repository earlier:
+remove the file manually to continue.
+fatal: unable to access 'https://github.com/manender-coder/aikya-autopilot-upload.git/': Could not resolve host: github.com
