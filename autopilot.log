@@ -169,3 +169,116 @@ are terminated then try again. If it still fails, a git process
 may have crashed in this repository earlier:
 remove the file manually to continue.
 fatal: unable to access 'https://github.com/manender-coder/aikya-autopilot-upload.git/': Could not resolve host: github.com
+[main 7a48dd39] ♾️ Auto Aikya Sync Thu Nov 13 00:00:05 IST 2025
+ 1 file changed, 112 insertions(+)
+fatal: unable to access 'https://github.com/manender-coder/aikya-autopilot-upload.git/': Could not resolve host: github.com
+Authentication Error: Your credentials are no longer valid. Please run firebase login --reauth
+
+For CI servers and headless environments, generate a new token with firebase login:ci
+Authentication Error: Your credentials are no longer valid. Please run firebase login --reauth
+
+For CI servers and headless environments, generate a new token with firebase login:ci
+
+Error: Assertion failed: resolving hosting target of a site with no site name or target name. This should have caused an error earlier
+Authentication Error: Your credentials are no longer valid. Please run firebase login --reauth
+
+For CI servers and headless environments, generate a new token with firebase login:ci
+Authentication Error: Your credentials are no longer valid. Please run firebase login --reauth
+
+For CI servers and headless environments, generate a new token with firebase login:ci
+
+Error: Assertion failed: resolving hosting target of a site with no site name or target name. This should have caused an error earlier
+
+request to https://api.expo.dev/graphql failed, reason: getaddrinfo ENOTFOUND api.expo.dev
+    Error: GraphQL request failed.
+⚠️ EAS build failed, retrying attempt 1...
+
+request to https://api.expo.dev/graphql failed, reason: getaddrinfo ENOTFOUND api.expo.dev
+    Error: GraphQL request failed.
+⚠️ EAS build failed, retrying attempt 1...
+
+request to https://api.expo.dev/graphql failed, reason: getaddrinfo ENOTFOUND api.expo.dev
+    Error: GraphQL request failed.
+⚠️ EAS build failed, retrying attempt 2...
+
+request to https://api.expo.dev/graphql failed, reason: getaddrinfo ENOTFOUND api.expo.dev
+    Error: GraphQL request failed.
+⚠️ EAS build failed, retrying attempt 2...
+
+request to https://api.expo.dev/graphql failed, reason: getaddrinfo ENOTFOUND api.expo.dev
+    Error: GraphQL request failed.
+⚠️ EAS build failed, retrying attempt 3...
+
+request to https://api.expo.dev/graphql failed, reason: getaddrinfo ENOTFOUND api.expo.dev
+    Error: GraphQL request failed.
+⚠️ EAS build failed, retrying attempt 3...
+Error: ENOENT: no such file or directory, stat '/data/data/com.termux/files/home/aikya/public'
+    at Object.statSync (node:fs:1725:25)
+    at Object.statSync (/data/data/com.termux/files/usr/lib/node_modules/gh-pages/node_modules/graceful-fs/polyfills.js:319:16)
+    at Object.publish (/data/data/com.termux/files/usr/lib/node_modules/gh-pages/lib/index.js:98:13)
+    at /data/data/com.termux/files/usr/lib/node_modules/gh-pages/bin/gh-pages.js:12:13
+    at new Promise (<anonymous>)
+    at publish (/data/data/com.termux/files/usr/lib/node_modules/gh-pages/bin/gh-pages.js:10:10)
+    at /data/data/com.termux/files/usr/lib/node_modules/gh-pages/bin/gh-pages.js:142:12
+sed: -e expression #1, char 6: unterminated `s' command
+curl: (3) URL rejected: Malformed input to a URL function
+----- ✅ Full Cycle Completed Thu Nov 13 00:02:02 IST 2025 -----
+----- ✅ Full Cycle Completed Thu Nov 13 00:02:03 IST 2025 -----
+----- 🌅 Thu Nov 13 06:00:01 IST 2025: Starting Eternal Aikya Autopilot -----
+----- 🌅 Thu Nov 13 06:00:01 IST 2025: Starting Eternal Aikya Autopilot -----
+----- 🌅 Thu Nov 13 06:00:01 IST 2025: Starting Eternal Aikya Autopilot -----
+----- 🌅 Thu Nov 13 06:00:01 IST 2025: Starting Eternal Aikya Autopilot -----
+From https://github.com/manender-coder/aikya-autopilot-upload
+ * branch              main       -> FETCH_HEAD
+From https://github.com/manender-coder/aikya-autopilot-upload
+ * branch              main       -> FETCH_HEAD
+From https://github.com/manender-coder/aikya-autopilot-upload
+ * branch              main       -> FETCH_HEAD
+From https://github.com/manender-coder/aikya-autopilot-upload
+ * branch              main       -> FETCH_HEAD
+Already up to date.
+Already up to date.
+Already up to date.
+fatal: Unable to create '/data/data/com.termux/files/home/aikya/.git/index.lock': File exists.
+
+Another git process seems to be running in this repository, e.g.
+an editor opened by 'git commit'. Please make sure all processes
+are terminated then try again. If it still fails, a git process
+may have crashed in this repository earlier:
+remove the file manually to continue.
+Already up to date.
+fatal: Unable to create '/data/data/com.termux/files/home/aikya/.git/index.lock': File exists.
+
+Another git process seems to be running in this repository, e.g.
+an editor opened by 'git commit'. Please make sure all processes
+are terminated then try again. If it still fails, a git process
+may have crashed in this repository earlier:
+remove the file manually to continue.
+fatal: Unable to create '/data/data/com.termux/files/home/aikya/.git/index.lock': File exists.
+
+Another git process seems to be running in this repository, e.g.
+an editor opened by 'git commit'. Please make sure all processes
+are terminated then try again. If it still fails, a git process
+may have crashed in this repository earlier:
+remove the file manually to continue.
+fatal: Unable to create '/data/data/com.termux/files/home/aikya/.git/index.lock': File exists.
+
+Another git process seems to be running in this repository, e.g.
+an editor opened by 'git commit'. Please make sure all processes
+are terminated then try again. If it still fails, a git process
+may have crashed in this repository earlier:
+remove the file manually to continue.
+fatal: Unable to create '/data/data/com.termux/files/home/aikya/.git/index.lock': File exists.
+
+Another git process seems to be running in this repository, e.g.
+an editor opened by 'git commit'. Please make sure all processes
+are terminated then try again. If it still fails, a git process
+may have crashed in this repository earlier:
+remove the file manually to continue.
+fatal: Unable to create '/data/data/com.termux/files/home/aikya/.git/index.lock': File exists.
+
+Another git process seems to be running in this repository, e.g.
+an editor opened by 'git commit'. Please make sure all processes
+are terminated then try again. If it still fails, a git process
+may have crashed in this repository earlier:
+remove the file manually to continue.
