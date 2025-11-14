@@ -1,8 +1,5 @@
 #!/data/data/com.termux/files/usr/bin/bash
 LOG=~/aikya/autopilot.log
-MAXLOG=5000   # keep last 5000 lines
-
-# 🌅 Start
 echo "----- 🌅 $(date): Starting Eternal Aikya Autopilot -----" >> $LOG
 
 # 🔮 Sync Vaults, Namantaran, Captions
@@ -20,14 +17,10 @@ git push origin main >> $LOG 2>&1 || true
 # 🌐 Firebase Hosting Deploy
 firebase deploy --only hosting >> $LOG 2>&1
 
-# 📱 Android EAS Build + Auto Submit (retry on failure)
+# 📱 Android EAS Build + Auto Submit
 export EAS_BUILD_PROFILE=production
 export EAS_NON_INTERACTIVE=1
-for i in {1..3}; do
-    eas build --platform android --profile production --auto-submit >> $LOG 2>&1 && break
-    echo "⚠️ EAS build failed, retrying attempt $i..." >> $LOG
-    sleep 30
-done
+eas build --platform android --profile production --auto-submit >> $LOG 2>&1
 
 # 🌍 GitHub Pages Mirror
 gh-pages -d public >> $LOG 2>&1 || true
@@ -35,9 +28,6 @@ gh-pages -d public >> $LOG 2>&1 || true
 # 📲 WhatsApp Notification
 lastline=$(tail -n 5 $LOG | sed "s//\/g")
 curl -X POST "https://api.callmebot.com/whatsapp.php?phone=+918094583006&text=🌅 Aikya+Autopilot+Update:+$lastline&apikey=987654"
-
-# 🧹 Log Rotation
-tail -n $MAXLOG $LOG > $LOG.tmp && mv $LOG.tmp $LOG
 
 echo "----- ✅ Full Cycle Completed $(date) -----" >> $LOG
 
