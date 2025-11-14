@@ -9730,3 +9730,43 @@ Error: ENOENT: no such file or directory, stat '/data/data/com.termux/files/home
 From https://github.com/manender-coder/aikya-autopilot-upload
  * branch              main       -> FETCH_HEAD
 Already up to date.
+[main 83c543f1] ♾️ Auto Aikya Sync Fri Nov 14 15:56:04 IST 2025
+ 2 files changed, 43 insertions(+)
+remote: This repository moved. Please use the new location:        
+remote:   https://github.com/manender-coder/Aikya-autopilot-upload.git        
+To https://github.com/manender-coder/aikya-autopilot-upload.git
+   d4c04b94..83c543f1  main -> main
+
+=== Deploying to 'aikya-spritual'...
+
+i  deploying hosting
+i  hosting[aikya-spritual]: beginning deploy...
+i  hosting[aikya-spritual]: found 2 files in public
+i  hosting: upload complete
+✔  hosting[aikya-spritual]: file upload complete
+i  hosting[aikya-spritual]: finalizing version...
+✔  hosting[aikya-spritual]: version finalized
+i  hosting[aikya-spritual]: releasing new version...
+✔  hosting[aikya-spritual]: release complete
+
+✔  Deploy complete!
+
+Project Console: https://console.firebase.google.com/project/aikya-spritual/overview
+Hosting URL: https://aikya-spritual.web.app
+eas.json is not valid.
+- "submit.production.serviceAccountKeyPath" is not allowed
+- "submit.production.track" is not allowed
+    Error: build command failed.
+Error: ENOENT: no such file or directory, stat '/data/data/com.termux/files/home/aikya/public'
+    at Object.statSync (node:fs:1725:25)
+    at Object.statSync (/data/data/com.termux/files/usr/lib/node_modules/gh-pages/node_modules/graceful-fs/polyfills.js:319:16)
+    at Object.publish (/data/data/com.termux/files/usr/lib/node_modules/gh-pages/lib/index.js:98:13)
+    at /data/data/com.termux/files/usr/lib/node_modules/gh-pages/bin/gh-pages.js:12:13
+    at new Promise (<anonymous>)
+    at publish (/data/data/com.termux/files/usr/lib/node_modules/gh-pages/bin/gh-pages.js:10:10)
+    at /data/data/com.termux/files/usr/lib/node_modules/gh-pages/bin/gh-pages.js:142:12
+----- ✅ Full Cycle Completed Fri Nov 14 15:56:35 IST 2025 -----
+----- 🌅 Fri Nov 14 15:56:45 IST 2025: Starting Eternal Aikya Autopilot -----
+From https://github.com/manender-coder/aikya-autopilot-upload
+ * branch              main       -> FETCH_HEAD
+Already up to date.
