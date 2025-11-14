@@ -64,3 +64,8 @@ bash: /data/data/com.termux/files/home/aikya/Aikya-autopilot-upload/aikya.sh: No
 [AutoRestart] Starting Aikya at Fri Nov 14 13:42:05 IST 2025
 /data/data/com.termux/files/home/aikya/Aikya-autopilot-upload/aikya.sh: line 1: 404:: command not found
 [AutoRestart] Starting Aikya at Fri Nov 14 13:42:15 IST 2025
+/data/data/com.termux/files/home/aikya/Aikya-autopilot-upload/aikya.sh: line 33: unexpected EOF while looking for matching `"'
+/data/data/com.termux/files/home/aikya/Aikya-autopilot-upload/aikya.sh: line 33: unexpected EOF while looking for matching `"'
+sed: -e expression #1, char 6: unterminated `s' command
+curl: (3) URL rejected: Malformed input to a URL function
+[AutoRestart] Starting Aikya at Fri Nov 14 13:45:07 IST 2025
