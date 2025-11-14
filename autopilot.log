@@ -17437,3 +17437,26 @@ Hosting URL: https://aikya-spritual.web.app
 From https://github.com/manender-coder/aikya-autopilot-upload
  * branch              main       -> FETCH_HEAD
 Already up to date.
+eas.json is not valid.
+- "submit.production.serviceAccountKeyPath" is not allowed
+- "submit.production.track" is not allowed
+    Error: build command failed.
+[main d62ff656] ♾️ Auto Aikya Sync Fri Nov 14 18:00:23 IST 2025
+ 1 file changed, 31 insertions(+)
+Error: ENOENT: no such file or directory, stat '/data/data/com.termux/files/home/aikya/public'
+    at Object.statSync (node:fs:1725:25)
+    at Object.statSync (/data/data/com.termux/files/usr/lib/node_modules/gh-pages/node_modules/graceful-fs/polyfills.js:319:16)
+    at Object.publish (/data/data/com.termux/files/usr/lib/node_modules/gh-pages/lib/index.js:98:13)
+    at /data/data/com.termux/files/usr/lib/node_modules/gh-pages/bin/gh-pages.js:12:13
+    at new Promise (<anonymous>)
+    at publish (/data/data/com.termux/files/usr/lib/node_modules/gh-pages/bin/gh-pages.js:10:10)
+    at /data/data/com.termux/files/usr/lib/node_modules/gh-pages/bin/gh-pages.js:142:12
+----- ✅ Full Cycle Completed Fri Nov 14 18:00:27 IST 2025 -----
+remote: This repository moved. Please use the new location:        
+remote:   https://github.com/manender-coder/Aikya-autopilot-upload.git        
+To https://github.com/manender-coder/aikya-autopilot-upload.git
+   4ddf5fdf..d62ff656  main -> main
+----- 🌅 Fri Nov 14 18:00:33 IST 2025: Starting Eternal Aikya Autopilot -----
+From https://github.com/manender-coder/aikya-autopilot-upload
+ * branch              main       -> FETCH_HEAD
+Already up to date.
