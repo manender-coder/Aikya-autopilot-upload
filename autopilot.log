@@ -1279,3 +1279,33 @@ ccuurrll::  ((33))  UURRLL  rreejjeecctteedd::  MMaallffoorrmmeedd  iinnppuutt  
 From https://github.com/manender-coder/aikya-autopilot-upload
  * branch              main       -> FETCH_HEAD
 Already up to date.
+warning: adding embedded git repository: Aikya-autopilot-upload
+hint: You've added another git repository inside your current repository.
+hint: Clones of the outer repository will not contain the contents of
+hint: the embedded repository and will not know how to obtain it.
+hint: If you meant to add a submodule, use:
+hint:
+hint: 	git submodule add <url> Aikya-autopilot-upload
+hint:
+hint: If you added this path by mistake, you can remove it from the
+hint: index with:
+hint:
+hint: 	git rm --cached Aikya-autopilot-upload
+hint:
+hint: See "git help submodule" for more information.
+hint: Disable this message with "git config set advice.addEmbeddedRepo false"
+----- 🌅 Fri Nov 14 13:42:22 IST 2025: Starting Eternal Aikya Autopilot -----
+[main a8682be3] ♾️ Auto Aikya Sync Fri Nov 14 13:42:22 IST 2025
+ 4 files changed, 195 insertions(+), 12 deletions(-)
+ create mode 160000 Aikya-autopilot-upload
+ create mode 100644 autostart.log
+From https://github.com/manender-coder/aikya-autopilot-upload
+ * branch              main       -> FETCH_HEAD
+warning: fetch updated the current branch head.
+fast-forwarding your working tree from
+commit ec7bf5294eb2da50c7c9164a28fbbff88a0c1ce5.
+remote: This repository moved. Please use the new location:        
+remote:   https://github.com/manender-coder/Aikya-autopilot-upload.git        
+To https://github.com/manender-coder/aikya-autopilot-upload.git
+   ec7bf529..a8682be3  main -> main
+Already up to date.
