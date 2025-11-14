@@ -70,3 +70,9 @@ sed: -e expression #1, char 6: unterminated `s' command
 curl: (3) URL rejected: Malformed input to a URL function
 [AutoRestart] Starting Aikya at Fri Nov 14 13:45:07 IST 2025
 /data/data/com.termux/files/home/aikya/Aikya-autopilot-upload/aikya.sh: line 19: Deploy: command not found
+sed: -e expression #1, char 6: unterminated `s' command
+curl: (3) URL rejected: Malformed input to a URL function
+tail: invalid number of lines: ‘/data/data/com.termux/files/home/aikya/autopilot.log’
+sed: -e expression #1, char 6: unterminated `s' command
+curl: (3) URL rejected: Malformed input to a URL function
+[AutoRestart] Starting Aikya at Fri Nov 14 13:48:08 IST 2025
