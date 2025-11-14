@@ -1,0 +1,25 @@
+[debug] [2025-11-14T08:37:36.536Z] ----------------------------------------------------------------------
+[debug] [2025-11-14T08:37:36.549Z] Command:       /data/data/com.termux/files/usr/bin/node /data/data/com.termux/files/usr/bin/firebase deploy --only hosting
+[debug] [2025-11-14T08:37:36.551Z] CLI Version:   14.25.0
+[debug] [2025-11-14T08:37:36.551Z] Platform:      android
+[debug] [2025-11-14T08:37:36.552Z] Node Version:  v24.9.0
+[debug] [2025-11-14T08:37:36.553Z] Time:          Fri Nov 14 2025 14:07:36 GMT+0530 (India Standard Time)
+[debug] [2025-11-14T08:37:36.554Z] ----------------------------------------------------------------------
+[debug] 
+[debug] [2025-11-14T08:37:37.343Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2025-11-14T08:37:37.345Z] > authorizing via signed-in user (manender.sahu@gmail.com)
+[debug] [2025-11-14T08:37:37.346Z] [iam] checking project aikya-spritual for permissions ["firebase.projects.get","firebasehosting.sites.update"]
+[debug] [2025-11-14T08:37:37.350Z] Checked if tokens are valid: true, expires at: 1763111560389
+[debug] [2025-11-14T08:37:37.351Z] Checked if tokens are valid: true, expires at: 1763111560389
+[debug] [2025-11-14T08:37:37.355Z] >>> [apiv2][query] POST https://cloudresourcemanager.googleapis.com/v1/projects/aikya-spritual:testIamPermissions [none]
+[debug] [2025-11-14T08:37:37.355Z] >>> [apiv2][(partial)header] POST https://cloudresourcemanager.googleapis.com/v1/projects/aikya-spritual:testIamPermissions x-goog-quota-user=projects/aikya-spritual
+[debug] [2025-11-14T08:37:37.356Z] >>> [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/aikya-spritual:testIamPermissions {"permissions":["firebase.projects.get","firebasehosting.sites.update"]}
+[debug] [2025-11-14T08:37:40.565Z] *** [apiv2] error from fetch(https://cloudresourcemanager.googleapis.com/v1/projects/aikya-spritual:testIamPermissions, {"headers":{},"method":"POST","body":"{\"permissions\":[\"firebase.projects.get\",\"firebasehosting.sites.update\"]}"}): FetchError: request to https://cloudresourcemanager.googleapis.com/v1/projects/aikya-spritual:testIamPermissions failed, reason: getaddrinfo ENOTFOUND cloudresourcemanager.googleapis.com
+[debug] [2025-11-14T08:37:40.583Z] [iam] error while checking permissions, command may fail: Failed to make request to https://cloudresourcemanager.googleapis.com/v1/projects/aikya-spritual:testIamPermissions
+[debug] [2025-11-14T08:37:40.595Z] Checked if tokens are valid: true, expires at: 1763111560389
+[debug] [2025-11-14T08:37:40.596Z] Checked if tokens are valid: true, expires at: 1763111560389
+[debug] [2025-11-14T08:37:40.599Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/projects/aikya-spritual [none]
+[debug] [2025-11-14T08:37:58.421Z] *** [apiv2] error from fetch(https://firebase.googleapis.com/v1beta1/projects/aikya-spritual, {"headers":{},"method":"GET","signal":{"reason":""}}): FetchError: request to https://firebase.googleapis.com/v1beta1/projects/aikya-spritual failed, reason: 
+[debug] [2025-11-14T08:37:58.425Z] Failed to make request to https://firebase.googleapis.com/v1beta1/projects/aikya-spritual (original: request to https://firebase.googleapis.com/v1beta1/projects/aikya-spritual failed, reason: )
+[error] 
+[error] Error: Assertion failed: resolving hosting target of a site with no site name or target name. This should have caused an error earlier

@@ -2819,3 +2819,28 @@ Error: ENOENT: no such file or directory, stat '/data/data/com.termux/files/home
 From https://github.com/manender-coder/aikya-autopilot-upload
  * branch              main       -> FETCH_HEAD
 Already up to date.
+[main e7cab26e] ♾️ Auto Aikya Sync Fri Nov 14 14:07:30 IST 2025
+ 2 files changed, 43 insertions(+)
+remote: This repository moved. Please use the new location:        
+remote:   https://github.com/manender-coder/Aikya-autopilot-upload.git        
+To https://github.com/manender-coder/aikya-autopilot-upload.git
+   64a13ddc..e7cab26e  main -> main
+
+Error: Assertion failed: resolving hosting target of a site with no site name or target name. This should have caused an error earlier
+eas.json is not valid.
+- "submit.production.serviceAccountKeyPath" is not allowed
+- "submit.production.track" is not allowed
+    Error: build command failed.
+Error: ENOENT: no such file or directory, stat '/data/data/com.termux/files/home/aikya/public'
+    at Object.statSync (node:fs:1725:25)
+    at Object.statSync (/data/data/com.termux/files/usr/lib/node_modules/gh-pages/node_modules/graceful-fs/polyfills.js:319:16)
+    at Object.publish (/data/data/com.termux/files/usr/lib/node_modules/gh-pages/lib/index.js:98:13)
+    at /data/data/com.termux/files/usr/lib/node_modules/gh-pages/bin/gh-pages.js:12:13
+    at new Promise (<anonymous>)
+    at publish (/data/data/com.termux/files/usr/lib/node_modules/gh-pages/bin/gh-pages.js:10:10)
+    at /data/data/com.termux/files/usr/lib/node_modules/gh-pages/bin/gh-pages.js:142:12
+----- ✅ Full Cycle Completed Fri Nov 14 14:08:11 IST 2025 -----
+----- 🌅 Fri Nov 14 14:08:18 IST 2025: Starting Eternal Aikya Autopilot -----
+From https://github.com/manender-coder/aikya-autopilot-upload
+ * branch              main       -> FETCH_HEAD
+Already up to date.
