@@ -78,3 +78,7 @@ curl: (3) URL rejected: Malformed input to a URL function
 [AutoRestart] Starting Aikya at Fri Nov 14 13:48:08 IST 2025
 sed: -e expression #1, char 6: unterminated `s' command
 curl: (3) URL rejected: Malformed input to a URL function
+/data/data/com.termux/files/home/aikya/Aikya-autopilot-upload/aikya.sh: line 33: unexpected EOF while looking for matching `"'
+sed: -e expression #1, char 6: unterminated `s' command
+curl: (3) URL rejected: Malformed input to a URL function
+[AutoRestart] Starting Aikya at Fri Nov 14 13:51:10 IST 2025
