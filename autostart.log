@@ -2218,3 +2218,4 @@ curl: (3) URL rejected: Malformed input to a URL function
 sed: -e expression #1, char 6: unterminated `s' command
 curl: (3) URL rejected: Malformed input to a URL function
 [AutoRestart] Starting Aikya at Fri Nov 14 21:51:17 IST 2025
+/data/data/com.termux/files/home/aikya/Aikya-autopilot-upload/aikya.sh: line 23: 12381 Hangup                     eas build --platform android --profile production --auto-submit >> $LOG 2>&1
