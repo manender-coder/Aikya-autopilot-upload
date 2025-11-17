@@ -1,0 +1,97 @@
+[debug] [2025-11-15T03:50:23.598Z] ----------------------------------------------------------------------
+[debug] [2025-11-15T03:50:23.614Z] Command:       /data/data/com.termux/files/usr/bin/node /data/data/com.termux/files/usr/bin/firebase deploy --only hosting
+[debug] [2025-11-15T03:50:23.615Z] CLI Version:   14.25.0
+[debug] [2025-11-15T03:50:23.615Z] Platform:      android
+[debug] [2025-11-15T03:50:23.616Z] Node Version:  v24.9.0
+[debug] [2025-11-15T03:50:23.616Z] Time:          Sat Nov 15 2025 09:20:23 GMT+0530 (India Standard Time)
+[debug] [2025-11-15T03:50:23.617Z] ----------------------------------------------------------------------
+[debug] 
+[debug] [2025-11-15T03:50:24.223Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2025-11-15T03:50:24.224Z] > authorizing via signed-in user (manender.sahu@gmail.com)
+[debug] [2025-11-15T03:50:24.225Z] [iam] checking project aikya-spritual for permissions ["firebase.projects.get","firebasehosting.sites.update"]
+[debug] [2025-11-15T03:50:24.229Z] Checked if tokens are valid: true, expires at: 1763179526630
+[debug] [2025-11-15T03:50:24.229Z] Checked if tokens are valid: true, expires at: 1763179526630
+[debug] [2025-11-15T03:50:24.232Z] >>> [apiv2][query] POST https://cloudresourcemanager.googleapis.com/v1/projects/aikya-spritual:testIamPermissions [none]
+[debug] [2025-11-15T03:50:24.232Z] >>> [apiv2][(partial)header] POST https://cloudresourcemanager.googleapis.com/v1/projects/aikya-spritual:testIamPermissions x-goog-quota-user=projects/aikya-spritual
+[debug] [2025-11-15T03:50:24.233Z] >>> [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/aikya-spritual:testIamPermissions {"permissions":["firebase.projects.get","firebasehosting.sites.update"]}
+[debug] [2025-11-15T03:50:40.724Z] <<< [apiv2][status] POST https://cloudresourcemanager.googleapis.com/v1/projects/aikya-spritual:testIamPermissions 200
+[debug] [2025-11-15T03:50:40.725Z] <<< [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/aikya-spritual:testIamPermissions {"permissions":["firebase.projects.get","firebasehosting.sites.update"]}
+[debug] [2025-11-15T03:50:40.727Z] Checked if tokens are valid: false, expires at: 1763179526630
+[debug] [2025-11-15T03:50:40.727Z] Checked if tokens are valid: false, expires at: 1763179526630
+[debug] [2025-11-15T03:50:40.727Z] > refreshing access token with scopes: []
+[debug] [2025-11-15T03:50:40.731Z] >>> [apiv2][query] POST https://www.googleapis.com/oauth2/v3/token [none]
+[debug] [2025-11-15T03:50:40.731Z] >>> [apiv2][body] POST https://www.googleapis.com/oauth2/v3/token [omitted]
+[debug] [2025-11-15T03:50:48.799Z] <<< [apiv2][status] POST https://www.googleapis.com/oauth2/v3/token 200
+[debug] [2025-11-15T03:50:48.800Z] <<< [apiv2][body] POST https://www.googleapis.com/oauth2/v3/token [omitted]
+[debug] [2025-11-15T03:50:48.816Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/projects/aikya-spritual [none]
+[debug] [2025-11-15T03:50:51.030Z] <<< [apiv2][status] GET https://firebase.googleapis.com/v1beta1/projects/aikya-spritual 200
+[debug] [2025-11-15T03:50:51.030Z] <<< [apiv2][body] GET https://firebase.googleapis.com/v1beta1/projects/aikya-spritual {"projectId":"aikya-spritual","projectNumber":"1090169721134","displayName":"Aikya spritual ","name":"projects/aikya-spritual","resources":{"hostingSite":"aikya-spritual","realtimeDatabaseInstance":"aikya-spritual-default-rtdb"},"state":"ACTIVE","etag":"1_cd64b592-93f8-40a4-bde0-bbde48135b95"}
+[info] 
+[info] === Deploying to 'aikya-spritual'...
+[info] 
+[info] i  deploying hosting 
+[debug] [2025-11-15T03:50:51.048Z] Checked if tokens are valid: true, expires at: 1763182247802
+[debug] [2025-11-15T03:50:51.049Z] Checked if tokens are valid: true, expires at: 1763182247802
+[debug] [2025-11-15T03:50:51.049Z] >>> [apiv2][query] POST https://firebasehosting.googleapis.com/v1beta1/projects/-/sites/aikya-spritual/versions [none]
+[debug] [2025-11-15T03:50:51.049Z] >>> [apiv2][body] POST https://firebasehosting.googleapis.com/v1beta1/projects/-/sites/aikya-spritual/versions {"status":"CREATED","labels":{"deployment-tool":"cli-firebase"}}
+[debug] [2025-11-15T03:51:02.068Z] <<< [apiv2][status] POST https://firebasehosting.googleapis.com/v1beta1/projects/-/sites/aikya-spritual/versions 200
+[debug] [2025-11-15T03:51:02.069Z] <<< [apiv2][body] POST https://firebasehosting.googleapis.com/v1beta1/projects/-/sites/aikya-spritual/versions {"name":"projects/1090169721134/sites/aikya-spritual/versions/75966d58e88b55d8","status":"CREATED","config":{},"labels":{"deployment-tool":"cli-firebase"}}
+[info] i  hosting[aikya-spritual]: beginning deploy... 
+[info] i  hosting[aikya-spritual]: found 2 files in public 
+[debug] [2025-11-15T03:51:02.118Z] [hosting] uploading with 200 concurrency
+[debug] [2025-11-15T03:51:02.127Z] Checked if tokens are valid: true, expires at: 1763182247802
+[debug] [2025-11-15T03:51:02.128Z] Checked if tokens are valid: true, expires at: 1763182247802
+[debug] [2025-11-15T03:51:02.130Z] [hosting] hash cache [cHVibGlj] stored for 2 files
+[debug] [2025-11-15T03:51:02.131Z] [hosting][hash queue][FINAL] {"max":2,"min":1,"avg":1,"active":0,"complete":2,"success":2,"errored":0,"retried":0,"total":2,"elapsed":7}
+[debug] [2025-11-15T03:51:02.131Z] >>> [apiv2][query] POST https://firebasehosting.googleapis.com/v1beta1/projects/1090169721134/sites/aikya-spritual/versions/75966d58e88b55d8:populateFiles [none]
+[debug] [2025-11-15T03:51:02.132Z] >>> [apiv2][body] POST https://firebasehosting.googleapis.com/v1beta1/projects/1090169721134/sites/aikya-spritual/versions/75966d58e88b55d8:populateFiles {"files":{"/index.html":"b10c0ab1066333f39ff2722250654a33bbd1a1456779fb1b2a3498c290df54c6","/404.html":"b7bab6b83fa074653ff28c8d2a64135d3434575f70a12ab3d3ba8080461b9537"}}
+[debug] [2025-11-15T03:51:03.740Z] <<< [apiv2][status] POST https://firebasehosting.googleapis.com/v1beta1/projects/1090169721134/sites/aikya-spritual/versions/75966d58e88b55d8:populateFiles 200
+[debug] [2025-11-15T03:51:03.741Z] <<< [apiv2][body] POST https://firebasehosting.googleapis.com/v1beta1/projects/1090169721134/sites/aikya-spritual/versions/75966d58e88b55d8:populateFiles {"uploadUrl":"https://upload-firebasehosting.googleapis.com/upload/sites/aikya-spritual/versions/75966d58e88b55d8/files"}
+[debug] [2025-11-15T03:51:03.743Z] [hosting][populate queue][FINAL] {"max":1615,"min":1615,"avg":1615,"active":0,"complete":1,"success":1,"errored":0,"retried":0,"total":1,"elapsed":1616}
+[debug] [2025-11-15T03:51:03.744Z] [hosting] uploads queued: 0
+[debug] [2025-11-15T03:51:03.745Z] [hosting][upload queue][FINAL] {"max":0,"min":9999999999,"avg":0,"active":0,"complete":0,"success":0,"errored":0,"retried":0,"total":0,"elapsed":1763178663745}
+[info] ✔  hosting[aikya-spritual]: file upload complete 
+[debug] [2025-11-15T03:51:03.750Z] [hosting] deploy completed after 1669ms
+[debug] [2025-11-15T03:51:03.751Z] [
+  {
+    "config": {
+      "public": "public",
+      "ignore": [
+        "firebase.json",
+        "**/.*",
+        "**/node_modules/**"
+      ],
+      "site": "aikya-spritual"
+    },
+    "version": "projects/1090169721134/sites/aikya-spritual/versions/75966d58e88b55d8"
+  }
+]
+[info] i  hosting[aikya-spritual]: finalizing version... 
+[debug] [2025-11-15T03:51:03.756Z] Checked if tokens are valid: true, expires at: 1763182247802
+[debug] [2025-11-15T03:51:03.757Z] Checked if tokens are valid: true, expires at: 1763182247802
+[debug] [2025-11-15T03:51:03.759Z] >>> [apiv2][query] PATCH https://firebasehosting.googleapis.com/v1beta1/projects/-/sites/aikya-spritual/versions/75966d58e88b55d8 updateMask=status%2Cconfig
+[debug] [2025-11-15T03:51:03.759Z] >>> [apiv2][body] PATCH https://firebasehosting.googleapis.com/v1beta1/projects/-/sites/aikya-spritual/versions/75966d58e88b55d8 {"status":"FINALIZED","config":{}}
+[debug] [2025-11-15T03:51:06.160Z] <<< [apiv2][status] PATCH https://firebasehosting.googleapis.com/v1beta1/projects/-/sites/aikya-spritual/versions/75966d58e88b55d8 200
+[debug] [2025-11-15T03:51:06.162Z] <<< [apiv2][body] PATCH https://firebasehosting.googleapis.com/v1beta1/projects/-/sites/aikya-spritual/versions/75966d58e88b55d8 {"name":"projects/1090169721134/sites/aikya-spritual/versions/75966d58e88b55d8","status":"FINALIZED","config":{},"labels":{"deployment-tool":"cli-firebase"},"createTime":"2025-11-15T03:51:01.547464Z","createUser":{"email":"manender.sahu@gmail.com"},"finalizeTime":"2025-11-15T03:51:05.966558Z","finalizeUser":{"email":"manender.sahu@gmail.com"}}
+[debug] [2025-11-15T03:51:06.163Z] [hosting] finalized version for aikya-spritual:[object Object]
+[info] ✔  hosting[aikya-spritual]: version finalized 
+[info] i  hosting[aikya-spritual]: releasing new version... 
+[debug] [2025-11-15T03:51:06.168Z] Checked if tokens are valid: true, expires at: 1763182247802
+[debug] [2025-11-15T03:51:06.169Z] Checked if tokens are valid: true, expires at: 1763182247802
+[debug] [2025-11-15T03:51:06.171Z] >>> [apiv2][query] POST https://firebasehosting.googleapis.com/v1beta1/projects/-/sites/aikya-spritual/channels/live/releases versionName=projects%2F1090169721134%2Fsites%2Faikya-spritual%2Fversions%2F75966d58e88b55d8
+[debug] [2025-11-15T03:51:06.171Z] >>> [apiv2][body] POST https://firebasehosting.googleapis.com/v1beta1/projects/-/sites/aikya-spritual/channels/live/releases {}
+[debug] [2025-11-15T03:51:08.423Z] <<< [apiv2][status] POST https://firebasehosting.googleapis.com/v1beta1/projects/-/sites/aikya-spritual/channels/live/releases 200
+[debug] [2025-11-15T03:51:08.424Z] <<< [apiv2][body] POST https://firebasehosting.googleapis.com/v1beta1/projects/-/sites/aikya-spritual/channels/live/releases {"name":"projects/1090169721134/sites/aikya-spritual/channels/live/releases/1763178667614000","version":{"name":"projects/1090169721134/sites/aikya-spritual/versions/75966d58e88b55d8","status":"FINALIZED","config":{},"labels":{"deployment-tool":"cli-firebase"},"createTime":"2025-11-15T03:51:01.547464Z","createUser":{"email":"manender.sahu@gmail.com","imageUrl":"https://lh3.googleusercontent.com/a/ACg8ocJtc49MFmNlZzC6LQiVSxtWGTHZUT-T1S2wWZVNCc6g0-VnYMPG"},"finalizeTime":"2025-11-15T03:51:05.966558Z","finalizeUser":{"email":"manender.sahu@gmail.com","imageUrl":"https://lh3.googleusercontent.com/a/ACg8ocJtc49MFmNlZzC6LQiVSxtWGTHZUT-T1S2wWZVNCc6g0-VnYMPG"}},"type":"DEPLOY","releaseTime":"2025-11-15T03:51:07.614Z","releaseUser":{"email":"manender.sahu@gmail.com","imageUrl":"https://lh3.googleusercontent.com/a/ACg8ocJtc49MFmNlZzC6LQiVSxtWGTHZUT-T1S2wWZVNCc6g0-VnYMPG"}}
+[debug] [2025-11-15T03:51:08.425Z] [hosting] release: {"name":"projects/1090169721134/sites/aikya-spritual/channels/live/releases/1763178667614000","version":{"name":"projects/1090169721134/sites/aikya-spritual/versions/75966d58e88b55d8","status":"FINALIZED","config":{},"labels":{"deployment-tool":"cli-firebase"},"createTime":"2025-11-15T03:51:01.547464Z","createUser":{"email":"manender.sahu@gmail.com","imageUrl":"https://lh3.googleusercontent.com/a/ACg8ocJtc49MFmNlZzC6LQiVSxtWGTHZUT-T1S2wWZVNCc6g0-VnYMPG"},"finalizeTime":"2025-11-15T03:51:05.966558Z","finalizeUser":{"email":"manender.sahu@gmail.com","imageUrl":"https://lh3.googleusercontent.com/a/ACg8ocJtc49MFmNlZzC6LQiVSxtWGTHZUT-T1S2wWZVNCc6g0-VnYMPG"}},"type":"DEPLOY","releaseTime":"2025-11-15T03:51:07.614Z","releaseUser":{"email":"manender.sahu@gmail.com","imageUrl":"https://lh3.googleusercontent.com/a/ACg8ocJtc49MFmNlZzC6LQiVSxtWGTHZUT-T1S2wWZVNCc6g0-VnYMPG"}}
+[info] ✔  hosting[aikya-spritual]: release complete 
+[info] 
+[info] ✔  Deploy complete! 
+[info] 
+[info] Project Console: https://console.firebase.google.com/project/aikya-spritual/overview
+[info] Hosting URL: https://aikya-spritual.web.app
+[debug] [2025-11-15T03:51:16.799Z] Error: Timed out.
+    at Timeout._onTimeout (/data/data/com.termux/files/usr/lib/node_modules/firebase-tools/lib/utils.js:275:49)
+    at listOnTimeout (node:internal/timers:608:17)
+    at process.processTimers (node:internal/timers:543:7)
+[error] 
+[error] Error: An unexpected error has occurred.

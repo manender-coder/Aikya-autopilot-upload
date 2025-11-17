@@ -1,0 +1,281 @@
+=== REPAIR START Sat Nov 15 22:01:59 IST 2025 ===
+[step] wake-lock forced
+[step] eas.json backed up
+[step] eas.json sanitized
+[step] repo exists, performing safe reset
+error: Unable to create '/data/data/com.termux/files/home/aikya/Aikya-autopilot-upload/.git/index.lock': File exists.
+
+Another git process seems to be running in this repository, e.g.
+an editor opened by 'git commit'. Please make sure all processes
+are terminated then try again. If it still fails, a git process
+may have crashed in this repository earlier:
+remove the file manually to continue.
+error: could not write index
+HEAD is now at 04851b4b ♾️ Auto Aikya Sync 2025-11-15 09:25:41 IST
+Removing eas.json.bak.1763224322
+Removing node_modules/.bin/install-from-cache
+Removing node_modules/.bin/node-gyp
+Removing node_modules/.bin/nopt
+Removing node_modules/.bin/save-to-github-cache
+Removing node_modules/install-artifact-from-github/
+Removing node_modules/node-gyp/
+Removing node_modules/nopt/
+[step] repo reset to origin/main
+[step] node_modules moved to backup
+[step] npm ci attempt
+npm warn EBADENGINE Unsupported engine {
+npm warn EBADENGINE   package: 'superstatic@9.2.0',
+npm warn EBADENGINE   required: { node: '18 || 20 || 22' },
+npm warn EBADENGINE   current: { node: 'v24.9.0', npm: '11.6.0' }
+npm warn EBADENGINE }
+npm warn deprecated inflight@1.0.6: This module is not supported, and leaks memory. Do not use it. Check out lru-cache if you want a good and tested way to coalesce async requests by a key value, which is much more comprehensive and powerful.
+npm warn deprecated lodash.get@4.4.2: This package is deprecated. Use the optional chaining (?.) operator instead.
+npm warn deprecated rimraf@2.4.5: Rimraf versions prior to v4 are no longer supported
+npm warn deprecated @oclif/screen@3.0.8: Package no longer supported. Contact Support at https://www.npmjs.com/support for more info.
+npm warn deprecated glob@6.0.4: Glob versions prior to v9 are no longer supported
+npm warn deprecated sudo-prompt@9.1.1: Package no longer supported. Contact Support at https://www.npmjs.com/support for more info.
+npm warn deprecated @xmldom/xmldom@0.7.13: this version is no longer supported, please update to at least 0.8.*
+npm warn deprecated node-domexception@1.0.0: Use your platform's native DOMException instead
+npm warn deprecated stable@0.1.8: Modern JS already guarantees Array#sort() is a stable sort, so this library is deprecated. See the compatibility table on MDN: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/sort#browser_compatibility
+npm warn deprecated rimraf@3.0.2: Rimraf versions prior to v4 are no longer supported
+npm warn deprecated osenv@0.1.5: This package is no longer supported.
+npm warn deprecated metro-react-native-babel-preset@0.76.8: Use @react-native/babel-preset instead
+npm warn deprecated abab@2.0.6: Use your platform's native atob() and btoa() methods instead
+npm warn deprecated @babel/plugin-proposal-optional-chaining@7.21.0: This proposal has been merged to the ECMAScript standard and thus this plugin is no longer maintained. Please use @babel/plugin-transform-optional-chaining instead.
+npm warn deprecated @babel/plugin-proposal-optional-catch-binding@7.18.6: This proposal has been merged to the ECMAScript standard and thus this plugin is no longer maintained. Please use @babel/plugin-transform-optional-catch-binding instead.
+npm warn deprecated @babel/plugin-proposal-numeric-separator@7.18.6: This proposal has been merged to the ECMAScript standard and thus this plugin is no longer maintained. Please use @babel/plugin-transform-numeric-separator instead.
+npm warn deprecated @babel/plugin-proposal-nullish-coalescing-operator@7.18.6: This proposal has been merged to the ECMAScript standard and thus this plugin is no longer maintained. Please use @babel/plugin-transform-nullish-coalescing-operator instead.
+npm warn deprecated @babel/plugin-proposal-class-properties@7.18.6: This proposal has been merged to the ECMAScript standard and thus this plugin is no longer maintained. Please use @babel/plugin-transform-class-properties instead.
+npm warn deprecated @babel/plugin-proposal-object-rest-spread@7.20.7: This proposal has been merged to the ECMAScript standard and thus this plugin is no longer maintained. Please use @babel/plugin-transform-object-rest-spread instead.
+npm warn deprecated @babel/plugin-proposal-export-namespace-from@7.18.9: This proposal has been merged to the ECMAScript standard and thus this plugin is no longer maintained. Please use @babel/plugin-transform-export-namespace-from instead.
+npm warn deprecated @babel/plugin-proposal-async-generator-functions@7.20.7: This proposal has been merged to the ECMAScript standard and thus this plugin is no longer maintained. Please use @babel/plugin-transform-async-generator-functions instead.
+npm warn deprecated @npmcli/move-file@1.1.2: This functionality has been moved to @npmcli/fs
+npm warn deprecated uglify-es@3.3.10: support for ECMAScript is superseded by `uglify-js` as of v3.13.0
+npm warn deprecated glob@7.1.6: Glob versions prior to v9 are no longer supported
+npm warn deprecated glob@7.2.3: Glob versions prior to v9 are no longer supported
+npm warn deprecated rimraf@2.6.3: Rimraf versions prior to v4 are no longer supported
+npm warn deprecated glob@7.2.3: Glob versions prior to v9 are no longer supported
+npm warn deprecated glob@7.1.6: Glob versions prior to v9 are no longer supported
+npm warn deprecated glob@7.1.6: Glob versions prior to v9 are no longer supported
+npm warn deprecated glob@7.1.6: Glob versions prior to v9 are no longer supported
+npm warn deprecated uuid@3.4.0: Please upgrade  to version 7 or higher.  Older versions may use Math.random() in certain circumstances, which is known to be problematic.  See https://v8.dev/blog/math-random for details.
+npm warn deprecated glob@7.1.6: Glob versions prior to v9 are no longer supported
+npm warn deprecated uuid@3.4.0: Please upgrade  to version 7 or higher.  Older versions may use Math.random() in certain circumstances, which is known to be problematic.  See https://v8.dev/blog/math-random for details.
+npm warn deprecated glob@7.1.6: Glob versions prior to v9 are no longer supported
+npm warn deprecated rimraf@2.7.1: Rimraf versions prior to v4 are no longer supported
+npm warn deprecated glob@7.2.3: Glob versions prior to v9 are no longer supported
+npm warn deprecated glob@7.2.3: Glob versions prior to v9 are no longer supported
+npm warn deprecated glob@7.2.3: Glob versions prior to v9 are no longer supported
+npm warn deprecated glob@7.2.3: Glob versions prior to v9 are no longer supported
+npm warn deprecated glob@7.2.3: Glob versions prior to v9 are no longer supported
+npm warn deprecated glob@7.2.3: Glob versions prior to v9 are no longer supported
+npm warn deprecated glob@7.1.6: Glob versions prior to v9 are no longer supported
+npm warn deprecated glob@7.1.6: Glob versions prior to v9 are no longer supported
+npm warn deprecated uuid@3.4.0: Please upgrade  to version 7 or higher.  Older versions may use Math.random() in certain circumstances, which is known to be problematic.  See https://v8.dev/blog/math-random for details.
+
+> dtrace-provider@0.8.8 install
+> node-gyp rebuild || node suppress-error.js
+
+gyp info it worked if it ends with ok
+gyp info using node-gyp@11.5.0
+gyp info using node@24.9.0 | android | arm64
+gyp info find Python using Python version 3.12.12 found at "/data/data/com.termux/files/usr/bin/python3"
+
+gyp info spawn /data/data/com.termux/files/usr/bin/python3
+gyp info spawn args [
+gyp info spawn args '/data/data/com.termux/files/home/aikya/Aikya-autopilot-upload/node_modules/node-gyp/gyp/gyp_main.py',
+gyp info spawn args 'binding.gyp',
+gyp info spawn args '-f',
+gyp info spawn args 'make',
+gyp info spawn args '-I',
+gyp info spawn args '/data/data/com.termux/files/home/aikya/Aikya-autopilot-upload/node_modules/dtrace-provider/build/config.gypi',
+gyp info spawn args '-I',
+gyp info spawn args '/data/data/com.termux/files/home/aikya/Aikya-autopilot-upload/node_modules/node-gyp/addon.gypi',
+gyp info spawn args '-I',
+gyp info spawn args '/data/data/com.termux/files/home/.cache/node-gyp/24.9.0/include/node/common.gypi',
+gyp info spawn args '-Dlibrary=shared_library',
+gyp info spawn args '-Dvisibility=default',
+gyp info spawn args '-Dnode_root_dir=/data/data/com.termux/files/home/.cache/node-gyp/24.9.0',
+gyp info spawn args '-Dnode_gyp_dir=/data/data/com.termux/files/home/aikya/Aikya-autopilot-upload/node_modules/node-gyp',
+gyp info spawn args '-Dnode_lib_file=/data/data/com.termux/files/home/.cache/node-gyp/24.9.0/<(target_arch)/node.lib',
+gyp info spawn args '-Dmodule_root_dir=/data/data/com.termux/files/home/aikya/Aikya-autopilot-upload/node_modules/dtrace-provider',
+gyp info spawn args '-Dnode_engine=v8',
+gyp info spawn args '--depth=.',
+gyp info spawn args '--no-parallel',
+gyp info spawn args '--generator-output',
+gyp info spawn args 'build',
+gyp info spawn args '-Goutput_dir=.'
+gyp info spawn args ]
+gyp: Undefined variable android_ndk_path in binding.gyp while trying to load binding.gyp
+gyp ERR! configure error 
+gyp ERR! stack Error: `gyp` failed with exit code: 1
+gyp ERR! stack at ChildProcess.<anonymous> (/data/data/com.termux/files/home/aikya/Aikya-autopilot-upload/node_modules/node-gyp/lib/configure.js:317:18)
+gyp ERR! stack at ChildProcess.emit (node:events:508:28)
+gyp ERR! stack at ChildProcess._handle.onexit (node:internal/child_process:294:12)
+gyp ERR! System Linux 5.10.209-android12-9-00019-g4ea09a298bb4-ab12292661
+gyp ERR! command "/data/data/com.termux/files/usr/bin/node" "/data/data/com.termux/files/home/aikya/Aikya-autopilot-upload/node_modules/.bin/node-gyp" "rebuild"
+gyp ERR! cwd /data/data/com.termux/files/home/aikya/Aikya-autopilot-upload/node_modules/dtrace-provider
+gyp ERR! node -v v24.9.0
+gyp ERR! node-gyp -v v11.5.0
+gyp ERR! not ok 
+
+> re2@1.22.1 install
+> install-from-cache --artifact build/Release/re2.node --host-var RE2_DOWNLOAD_MIRROR --skip-path-var RE2_DOWNLOAD_SKIP_PATH --skip-ver-var RE2_DOWNLOAD_SKIP_VER || node-gyp -j max rebuild
+
+Trying https://github.com/uhop/node-re2/releases/download/1.22.1/android-arm64-137.br ...
+Trying https://github.com/uhop/node-re2/releases/download/1.22.1/android-arm64-137.gz ...
+Trying https://github.com/uhop/node-re2/releases/download/1.22.1/android-arm64-137 ...
+Building locally ...
+
+> re2@1.22.1 rebuild
+> node-gyp -j max rebuild
+
+gyp info it worked if it ends with ok
+gyp info using node-gyp@11.5.0
+gyp info using node@24.9.0 | android | arm64
+gyp info find Python using Python version 3.12.12 found at "/data/data/com.termux/files/usr/bin/python3"
+
+gyp info spawn /data/data/com.termux/files/usr/bin/python3
+gyp info spawn args [
+gyp info spawn args '/data/data/com.termux/files/home/aikya/Aikya-autopilot-upload/node_modules/node-gyp/gyp/gyp_main.py',
+gyp info spawn args 'binding.gyp',
+gyp info spawn args '-f',
+gyp info spawn args 'make',
+gyp info spawn args '-I',
+gyp info spawn args '/data/data/com.termux/files/home/aikya/Aikya-autopilot-upload/node_modules/re2/build/config.gypi',
+gyp info spawn args '-I',
+gyp info spawn args '/data/data/com.termux/files/home/aikya/Aikya-autopilot-upload/node_modules/node-gyp/addon.gypi',
+gyp info spawn args '-I',
+gyp info spawn args '/data/data/com.termux/files/home/.cache/node-gyp/24.9.0/include/node/common.gypi',
+gyp info spawn args '-Dlibrary=shared_library',
+gyp info spawn args '-Dvisibility=default',
+gyp info spawn args '-Dnode_root_dir=/data/data/com.termux/files/home/.cache/node-gyp/24.9.0',
+gyp info spawn args '-Dnode_gyp_dir=/data/data/com.termux/files/home/aikya/Aikya-autopilot-upload/node_modules/node-gyp',
+gyp info spawn args '-Dnode_lib_file=/data/data/com.termux/files/home/.cache/node-gyp/24.9.0/<(target_arch)/node.lib',
+gyp info spawn args '-Dmodule_root_dir=/data/data/com.termux/files/home/aikya/Aikya-autopilot-upload/node_modules/re2',
+gyp info spawn args '-Dnode_engine=v8',
+gyp info spawn args '--depth=.',
+gyp info spawn args '--no-parallel',
+gyp info spawn args '--generator-output',
+gyp info spawn args 'build',
+gyp info spawn args '-Goutput_dir=.'
+gyp info spawn args ]
+Traceback (most recent call last):
+  File "/data/data/com.termux/files/home/aikya/Aikya-autopilot-upload/node_modules/node-gyp/gyp/gyp_main.py", line 45, in <module>
+    sys.exit(gyp.script_main())
+             ^^^^^^^^^^^^^^^^^
+  File "/data/data/com.termux/files/home/aikya/Aikya-autopilot-upload/node_modules/node-gyp/gyp/pylib/gyp/__init__.py", line 703, in script_main
+    return main(sys.argv[1:])
+           ^^^^^^^^^^^^^^^^^^
+  File "/data/data/com.termux/files/home/aikya/Aikya-autopilot-upload/node_modules/node-gyp/gyp/pylib/gyp/__init__.py", line 695, in main
+    return gyp_main(args)
+           ^^^^^^^^^^^^^^
+  File "/data/data/com.termux/files/home/aikya/Aikya-autopilot-upload/node_modules/node-gyp/gyp/pylib/gyp/__init__.py", line 662, in gyp_main
+    [generator, flat_list, targets, data] = Load(
+                                            ^^^^^
+  File "/data/data/com.termux/files/home/aikya/Aikya-autopilot-upload/node_modules/node-gyp/gyp/pylib/gyp/__init__.py", line 173, in Load
+    result = gyp.input.Load(
+             ^^^^^^^^^^^^^^^
+  File "/data/data/com.termux/files/home/aikya/Aikya-autopilot-upload/node_modules/node-gyp/gyp/pylib/gyp/input.py", line 2969, in Load
+    LoadTargetBuildFile(
+  File "/data/data/com.termux/files/home/aikya/Aikya-autopilot-upload/node_modules/node-gyp/gyp/pylib/gyp/input.py", line 400, in LoadTargetBuildFile
+    build_file_data = LoadOneBuildFile(
+                      ^^^^^^^^^^^^^^^^^
+  File "/data/data/com.termux/files/home/aikya/Aikya-autopilot-upload/node_modules/node-gyp/gyp/pylib/gyp/input.py", line 255, in LoadOneBuildFile
+    LoadBuildFileIncludesIntoDict(
+  File "/data/data/com.termux/files/home/aikya/Aikya-autopilot-upload/node_modules/node-gyp/gyp/pylib/gyp/input.py", line 299, in LoadBuildFileIncludesIntoDict
+    LoadOneBuildFile(include, data, aux_data, None, False, check),
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/data/com.termux/files/home/aikya/Aikya-autopilot-upload/node_modules/node-gyp/gyp/pylib/gyp/input.py", line 237, in LoadOneBuildFile
+    build_file_data = eval(build_file_contents, {"__builtins__": {}}, None)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/data/com.termux/files/home/aikya/Aikya-autopilot-upload/node_modules/re2/build/config.gypi", line 0
+    
+SyntaxError: invalid syntax
+gyp ERR! configure error 
+gyp ERR! stack Error: `gyp` failed with exit code: 1
+gyp ERR! stack at ChildProcess.<anonymous> (/data/data/com.termux/files/home/aikya/Aikya-autopilot-upload/node_modules/node-gyp/lib/configure.js:317:18)
+gyp ERR! stack at ChildProcess.emit (node:events:508:28)
+gyp ERR! stack at ChildProcess._handle.onexit (node:internal/child_process:294:12)
+gyp ERR! System Linux 5.10.209-android12-9-00019-g4ea09a298bb4-ab12292661
+gyp ERR! command "/data/data/com.termux/files/usr/bin/node" "/data/data/com.termux/files/home/aikya/Aikya-autopilot-upload/node_modules/.bin/node-gyp" "-j" "max" "rebuild"
+gyp ERR! cwd /data/data/com.termux/files/home/aikya/Aikya-autopilot-upload/node_modules/re2
+gyp ERR! node -v v24.9.0
+gyp ERR! node-gyp -v v11.5.0
+gyp ERR! not ok 
+node:internal/process/promises:392
+      new UnhandledPromiseRejection(reason);
+      ^
+
+UnhandledPromiseRejection: This error originated either by throwing inside of an async function without a catch block, or by rejecting a promise which was not handled with .catch(). The promise rejected with the reason "1".
+    at throwUnhandledRejectionsMode (node:internal/process/promises:392:7)
+    at processPromiseRejections (node:internal/process/promises:475:17)
+    at process.processTicksAndRejections (node:internal/process/task_queues:106:32) {
+  code: 'ERR_UNHANDLED_REJECTION'
+}
+
+Node.js v24.9.0
+gyp info it worked if it ends with ok
+gyp info using node-gyp@11.5.0
+gyp info using node@24.9.0 | android | arm64
+gyp info find Python using Python version 3.12.12 found at "/data/data/com.termux/files/usr/bin/python3"
+
+gyp info spawn /data/data/com.termux/files/usr/bin/python3
+gyp info spawn args [
+gyp info spawn args '/data/data/com.termux/files/home/aikya/Aikya-autopilot-upload/node_modules/node-gyp/gyp/gyp_main.py',
+gyp info spawn args 'binding.gyp',
+gyp info spawn args '-f',
+gyp info spawn args 'make',
+gyp info spawn args '-I',
+gyp info spawn args '/data/data/com.termux/files/home/aikya/Aikya-autopilot-upload/node_modules/re2/build/config.gypi',
+gyp info spawn args '-I',
+gyp info spawn args '/data/data/com.termux/files/home/aikya/Aikya-autopilot-upload/node_modules/node-gyp/addon.gypi',
+gyp info spawn args '-I',
+gyp info spawn args '/data/data/com.termux/files/home/.cache/node-gyp/24.9.0/include/node/common.gypi',
+gyp info spawn args '-Dlibrary=shared_library',
+gyp info spawn args '-Dvisibility=default',
+gyp info spawn args '-Dnode_root_dir=/data/data/com.termux/files/home/.cache/node-gyp/24.9.0',
+gyp info spawn args '-Dnode_gyp_dir=/data/data/com.termux/files/home/aikya/Aikya-autopilot-upload/node_modules/node-gyp',
+gyp info spawn args '-Dnode_lib_file=/data/data/com.termux/files/home/.cache/node-gyp/24.9.0/<(target_arch)/node.lib',
+gyp info spawn args '-Dmodule_root_dir=/data/data/com.termux/files/home/aikya/Aikya-autopilot-upload/node_modules/re2',
+gyp info spawn args '-Dnode_engine=v8',
+gyp info spawn args '--depth=.',
+gyp info spawn args '--no-parallel',
+gyp info spawn args '--generator-output',
+gyp info spawn args 'build',
+gyp info spawn args '-Goutput_dir=.'
+gyp info spawn args ]
+gyp: Undefined variable android_ndk_path in binding.gyp while trying to load binding.gyp
+gyp ERR! configure error 
+gyp ERR! stack Error: `gyp` failed with exit code: 1
+gyp ERR! stack at ChildProcess.<anonymous> (/data/data/com.termux/files/home/aikya/Aikya-autopilot-upload/node_modules/node-gyp/lib/configure.js:317:18)
+gyp ERR! stack at ChildProcess.emit (node:events:508:28)
+gyp ERR! stack at ChildProcess._handle.onexit (node:internal/child_process:294:12)
+gyp ERR! System Linux 5.10.209-android12-9-00019-g4ea09a298bb4-ab12292661
+gyp ERR! command "/data/data/com.termux/files/usr/bin/node" "/data/data/com.termux/files/home/aikya/Aikya-autopilot-upload/node_modules/.bin/node-gyp" "-j" "max" "rebuild"
+gyp ERR! cwd /data/data/com.termux/files/home/aikya/Aikya-autopilot-upload/node_modules/re2
+gyp ERR! node -v v24.9.0
+gyp ERR! node-gyp -v v11.5.0
+gyp ERR! not ok 
+
+> protobufjs@7.5.4 postinstall
+> node scripts/postinstall
+
+
+added 2122 packages, and changed 228 packages in 5m
+[ok] npm ci succeeded
+[step] npm run build
+npm error Missing script: "build"
+npm error
+npm error To see a list of scripts, run:
+npm error   npm run
+npm error A complete log of this run can be found in: /data/data/com.termux/files/home/.npm/_logs/2025-11-15T16_37_26_633Z-debug-0.log
+[err] build failed — check /data/data/com.termux/files/home/aikya/Aikya-autopilot-upload/build-errors.log
+[step] ensured ahiya.sh executable
+[step] healthengine.sh chmod +x
+[step] gitwatch.sh chmod +x
+[step] immortal.sh chmod +x
+[step] immortal.sh started
+[step] started autopilot + healthengine + gitwatch
+=== REPAIR END Sat Nov 15 22:07:30 IST 2025 ===
+Repair completed. tail -n 120 /data/data/com.termux/files/home/aikya/repair.log
