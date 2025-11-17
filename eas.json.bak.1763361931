@@ -20,5 +20,11 @@
         "buildType": "app-bundle"
       }
     }
+  },
+  "submit": {
+    "production": {
+      "serviceAccountKeyPath": "./api-keys.json",
+      "track": "production"
+    }
   }
 }
